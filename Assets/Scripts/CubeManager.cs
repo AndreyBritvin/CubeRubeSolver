@@ -217,6 +217,11 @@ public class CubeManager : MonoBehaviour {
             resetList();
             StartCoroutine(BuildColourRebra(sides));
         }
+        else if(Input.GetKeyDown(KeyCode.C))
+        {
+            resetList();
+            StartCoroutine(ReturnAndPlaceOnTruePlaceYellowRebra(sides));
+        }
 
         if (Input.GetKeyDown(KeyCode.W))
             StartCoroutine(Rotate(UpPieces, new Vector3(0, 1, 0)));
@@ -1366,6 +1371,7 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[4], RotationVectors[4], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[4], -RotationVectors[4], speed);
+                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
                 }
              else if(occ[0] == 3 && occ[1] == 5)
                 {
@@ -1377,6 +1383,7 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[3], RotationVectors[3], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[3], -RotationVectors[3], speed);
+                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
                 }
              else if(occ[0] == 2 && occ[1] == 5)
                 {
@@ -1387,6 +1394,7 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[5], RotationVectors[5], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[5], -RotationVectors[5], speed);
+                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
                 }
              else if(occ[0] == 2 && occ[1] == 4)
                 {
@@ -1397,8 +1405,9 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[2], RotationVectors[2], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[2], -RotationVectors[2], speed);
+                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
                 }   
-             yield return Rotate(sides[occ[0]], new Vector3(),speed);
+            
                     
                 
                 
@@ -1678,4 +1687,469 @@ public class CubeManager : MonoBehaviour {
             return -1;
         }
     }
+
+    IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
+    {
+        Color whiteColor = Color.white;
+
+        List<GameObject> Rebra = new List<GameObject>();
+
+        for (int i = 0; i < sides.Count; i++)
+        {
+            Rebra.AddRange(sides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 2));
+
+        }
+        int speed = 5;
+        List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1,1,0,1));
+        yield return RotateDown(yellowRebra, speed);
+        yield return null;
+    }
+
+    IEnumerator RotateDown(List<GameObject> rebra,int speed)
+    {List<GameObject> num = new List<GameObject>();
+        for (int i = 0; i<4; i++)
+        {
+             num = GetnumOfOnPlace(rebra);
+            print(num.Count);
+            if(num.Count == 2 || num.Count == 4)
+            {
+                break;
+            }
+            else
+            {
+                yield return Rotate(DownPieces, new Vector3(0,1,0), speed);
+            }
+        }
+        foreach(GameObject cubik in num)
+        {
+            print(cubik.transform.position);
+        }
+        for(int i = 0; i<1;i++)
+        {
+            if(IsPieceOnPlace(num[i]))
+            {
+                break;
+            }
+            else
+            {
+
+            }
+        }
+        List<GameObject> numFalse = new List<GameObject>();
+        for(int i = 0; i < rebra.Count;i++)
+        {
+            if (num.Contains(rebra[i]))
+            {
+                continue;
+            }
+            else numFalse.Add(rebra[i]);
+        }
+        if (numFalse.Count == 2)
+        {
+            yield return PutYellowRebraOnTheirPlaces(regrding2pieces(numFalse[0], numFalse[1], true),numFalse, speed);//put yellow on need place
+        }
+        int counter = 0;
+        List<GameObject> whoStayWrong = new List<GameObject>();
+        for(int i = 0; i<4; i++)
+        {
+            if(IsPieceOnPlace(rebra[i]))
+            {
+                counter++;
+            }
+            else
+            {
+                whoStayWrong.Add(rebra[i]);
+            }
+
+        }
+        print(counter);
+        print(whoStayWrong.Count);
+        if(counter == 4)
+        {
+            yield break;
+        }
+        else if(counter == 2)
+        {
+            int x = Mathf.RoundToInt(whoStayWrong[0].transform.position.x);
+            int z = Mathf.RoundToInt(whoStayWrong[0].transform.position.z);
+
+            int x1 = Mathf.RoundToInt(whoStayWrong[1].transform.position.x);
+            int z1= Mathf.RoundToInt(whoStayWrong[1].transform.position.z);
+
+            string situation = "";
+        
+            if (Mathf.Max(x, x1) - Mathf.Min(x, x1) == 2 || Mathf.Max(z, z1) - Mathf.Min(z, z1) == 2)
+            {
+                situation = "opposite";
+            }
+            else { situation = "notOpposite"; }
+
+            print(situation);
+            //print(centralSides.Count);
+            //print(GetCentralSide(centralSides, regrding2pieces(whoStayWrong[0], whoStayWrong[1], false)[7]));
+            // List<GameObject> cs = centralSides[ GetCentralSide(centralSides, regrding2pieces(whoStayWrong[0], whoStayWrong[1], false)[7])];
+            if (situation == "opposite")
+            {
+                if (Mathf.Round(whoStayWrong[0].transform.position.x) == -1)//centralpiece/getcentralside
+                {
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+
+
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                }
+                else
+                {
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                }
+                print("-------------------------------");
+
+
+            }
+            else
+            {
+                int coef = 1;
+                if(regrding2pieces(whoStayWrong[0], whoStayWrong[1], false) == sides[2] || regrding2pieces(whoStayWrong[0], whoStayWrong[1], false) == sides[4])
+                {
+                    coef = 1;
+                }
+                else
+                {
+                    coef = -1;
+                }
+                print("888888888888888888888888888888888888");
+                if (Mathf.Round(regrding2pieces(whoStayWrong[0], whoStayWrong[1], false)[GetPlaneCenter(regrding2pieces(whoStayWrong[0], whoStayWrong[1], false))].transform.position.x) == -1)
+                {
+                    print("iniq");
+                    yield return Rotate(UpHorizontal, new Vector3(-1*coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1 * coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1 * coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1 * coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(-1 * coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpHorizontal, new Vector3(1 * coef, 0, 0), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                }
+                else
+                {
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, -1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                    yield return Rotate(UpVertical, new Vector3(0, 0, 1 * coef), speed);
+                    yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                }
+        
+            }
+            
+        }
+        else if(counter ==0)
+        {
+            yield return Rotate(UpVertical, new Vector3(0,0,-1), speed);
+            yield return Rotate(DownPieces, new Vector3(0,-1,0),speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+            yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+            yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+
+            yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+         
+
+            yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+        }
+        print("DontExit");
+        if (numFalse.Count == 2)
+
+            
+
+        yield return null;
+    }
+
+    IEnumerator PutYellowRebraOnTheirPlaces(List<GameObject> side, List<GameObject> wrongpieces, int speed)
+    {
+        int x = Mathf.RoundToInt(wrongpieces[0].transform.position.x);
+        int z = Mathf.RoundToInt(wrongpieces[0].transform.position.z);
+
+        int x1 = Mathf.RoundToInt(wrongpieces[1].transform.position.x);
+        int z1 = Mathf.RoundToInt(wrongpieces[1].transform.position.z);
+
+        string situation = "";
+
+        if (Mathf.Max(x, x1) - Mathf.Min(x, x1) == 2 || Mathf.Max(z, z1) - Mathf.Min(z, z1) == 2)
+        {
+            situation = "opposite";
+        }
+        else { situation = "notOpposite"; }
+
+        speed = 5;
+        if (situation == "notOpposite")
+        {
+            if (side == sides[4])
+            {
+
+
+                yield return Rotate(sides[4], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[4], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[4], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[4], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            }
+            else if (side == sides[5])
+            {
+
+
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            }
+            else if (side == sides[3])
+            {
+
+
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            }
+            else if (side == sides[2])
+            {
+
+
+                yield return Rotate(sides[2], new Vector3(0, 0, 1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[2], new Vector3(0, 0, -1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[2], new Vector3(0, 0, 1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+
+                yield return Rotate(sides[2], new Vector3(0, 0, -1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+            }
+        }
+        else
+        {
+            if (Mathf.Round(wrongpieces[0].transform.position.z) == 1 || Mathf.Round(wrongpieces[1].transform.position.z) == 1)
+            {
+
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, -1), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[3], new Vector3(0, 0, 1), speed);
+            }
+            else
+            {
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+
+                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(1, 0, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
+                yield return Rotate(sides[5], new Vector3(-1, 0, 0), speed);
+
+            }
+        }
+    }
+
+
+
+    List<GameObject> GetnumOfOnPlace(List<GameObject> rebra)
+    {
+List<GameObject> CountOfTruStanded = new List<GameObject>();
+        for (int i = 0; i<4; i++)
+        {
+            int x = Mathf.RoundToInt(rebra[i].transform.position.x);
+            int y = Mathf.RoundToInt(rebra[i].transform.position.y);
+            int z = Mathf.RoundToInt(rebra[i].transform.position.z);
+            GameObject centralpiece = centralPiece(x,y,z);
+            if(IsPieceUnderSameColor(GetActivrColors(rebra[i]), GetActivrColors(centralpiece)))
+            {
+                CountOfTruStanded.Add(rebra[i]);
+            }
+        }
+        return CountOfTruStanded;
+    }
+    
+
+    List<GameObject> regrding2pieces(GameObject fPiece, GameObject sPiece, bool whichreturn)//true - sside, false - fside
+    {
+        List<GameObject> forreturn = new List<GameObject>();
+        int fSide = GetSide(sides[1], sides, fPiece)[0];
+        int sSide = GetSide(sides[1], sides, sPiece)[0];
+        print(fSide+" "+sSide);
+        if (whichreturn)
+        {
+            if ((fSide == 4 && sSide == 2) || (fSide == 2 && sSide == 4))
+            {
+                forreturn = sides[4];
+            }
+            else if ((fSide == 4 && sSide == 3) || (fSide == 3 && sSide == 4))
+            {
+                forreturn = sides[3];
+            }
+            else if ((fSide == 3 && sSide == 5) || (fSide == 5 && sSide == 3))
+            {
+                forreturn = sides[5];
+            }
+            else if ((fSide == 5 && sSide == 2) || (fSide == 2 && sSide == 5))
+            {
+                forreturn = sides[2];
+            }
+        }
+        else
+        {
+            if ((fSide == 4 && sSide == 2) || (fSide == 2 && sSide == 4))
+            {
+                forreturn = sides[2];
+            }
+            else if ((fSide == 4 && sSide == 3) || (fSide == 3 && sSide == 4))
+            {
+                forreturn = sides[4];
+            }
+            else if ((fSide == 3 && sSide == 5) || (fSide == 5 && sSide == 3))
+            {
+                forreturn = sides[3];
+            }
+            else if ((fSide == 5 && sSide == 2) || (fSide == 2 && sSide == 5))
+            {
+                forreturn = sides[5];
+            }
+        }
+        return forreturn;
+    }
+
+
+    
 }
