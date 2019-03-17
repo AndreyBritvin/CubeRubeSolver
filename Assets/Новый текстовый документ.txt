@@ -1,0 +1,451 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CubeManager : MonoBehaviour {
+	public GameObject CubePiecePref;
+	Transform CubeTransf;
+    //public int Size = 3;
+	public static int SizeSideCube = 3;  
+	List<GameObject> AllCubePieces = new List<GameObject>();
+	GameObject CubeCenterPiece;
+	int indexCenter;
+    bool canRotate = true,
+        canShuffle = true;
+
+    Vector3[] RotationVectors={
+        new Vector3(0,1,0),new Vector3(0,-1,0),
+        new Vector3(0,0,-1),new Vector3(0,0,1),
+        new Vector3(1,0,0),new Vector3(-1,0,0),
+
+
+    };
+
+    List<GameObject>[,] centralPieces = new List<GameObject>[3, SizeSideCube]; // [0] = frontHorizontal; [1] = [UpVertical]; [2] = UpHorizontals
+
+
+
+    List<GameObject> UpPieces
+	{
+	get
+	{
+		return AllCubePieces.FindAll(x=> Mathf.Round(x.transform.localPosition.y) == 0);
+	}	
+	}
+    List<GameObject> DownPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.y) == -SizeSideCube+1);
+        }
+    }
+    List<GameObject> LeftPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.z) == 0);
+        }
+    }
+    List<GameObject> RightPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.z) == SizeSideCube-1);
+        }
+    }
+    List<GameObject> BackPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.x) == -SizeSideCube + 1);
+        }
+    }
+    List<GameObject> FrontPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.x) == 0);
+        }
+    }
+
+   /* List<GameObject> UpHorizontal
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.x) == -1);
+        }
+    }
+    List<GameObject> UpVertical
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.z) == 1);
+        }
+    }
+    List<GameObject> FrontHorizontalPieces
+    {
+        get
+        {
+            return AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.y) == -1);
+        }
+    }*/
+
+    void getCentralPieces()
+    {
+        /*
+        List<string>[,] nameval = new List<string>[6,6];
+        nameval[0,0] = new List<string>();
+        nameval[2, 0] = new List<string>();
+        nameval[0, 0].Add("A");
+        nameval[2, 0].Add("B");
+        nameval[2, 0].Add("C");
+        Debug.Log("Name val = "+nameval[2,0]);
+        nameval[2, 0].ForEach(System.Console.WriteLine);
+        foreach(string val in nameval[2,0])
+        {
+            Debug.Log(val);
+        }*/
+        for (int i = 0; i <= 2; i++)
+        {
+
+            for (int j = 1; j < SizeSideCube - 1; j++)
+            {
+                if (i == 0)
+                {
+                    // centralPieces[i, j] = 
+                   // Debug.Log(AllCubePieces[0]);
+
+                    //   Debug.Log(AllCubePieces.FindAll(x => x.transform.localPosition.y == -2));
+
+                    List<GameObject> value = AllCubePieces.FindAll(x => x.transform.localPosition.y == -j);
+                    centralPieces[i, j] = new List<GameObject>();
+                    centralPieces[i, j] = value;
+
+                }
+                else if (i == 1)
+                {
+                    List<GameObject> val = AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.z) == j);
+
+                  //  Debug.Log("List_COunt = " + val.Count);
+                //    Debug.Log("List_Capacity = " + val.Capacity);
+
+
+                        centralPieces[i,j] = new List<GameObject>();
+                    centralPieces[i, j] = val;
+                    
+
+
+                    
+                
+            }
+
+            else if (i == 2)
+            {
+                centralPieces[i, j] =
+                    AllCubePieces.FindAll(x => Mathf.Round(x.transform.localPosition.x) == -j);
+            }
+                
+            }
+            
+        }
+       // Debug.Log(centralPieces);
+    }
+
+   
+
+    void Start () {
+ CubeTransf = transform;
+
+        CreateCube();
+      getCentralPieces();
+
+	}
+	
+	void Update () {
+
+        
+	if(canRotate){
+		CheckInput();
+	}}
+	void CreateCube()
+	{
+        foreach(GameObject go in AllCubePieces)
+        {
+            DestroyImmediate(go);
+        }
+        AllCubePieces.Clear();
+		for(int x=0;x<SizeSideCube;x++)
+				for(int y=0;y<SizeSideCube;y++)
+						for(int z=0;z<SizeSideCube;z++)
+						{
+							GameObject go = Instantiate(CubePiecePref, CubeTransf, false);
+							go.transform.localPosition = new Vector3(-x,-y,z);
+							go.GetComponent<CubePieceScript>().SetColor(-x,-y,z);
+							AllCubePieces.Add(go);
+						}
+		indexCenter = (int)Mathf.Floor((SizeSideCube*SizeSideCube*SizeSideCube)/2);
+		CubeCenterPiece = AllCubePieces[indexCenter];
+        //getCentralPieces();
+    }
+	void CheckInput()
+	{
+        if (Input.GetKeyDown(KeyCode.W))
+            StartCoroutine(Rotate(UpPieces, new Vector3(0, 1, 0)));
+
+        else if (Input.GetKeyDown(KeyCode.S))
+            StartCoroutine(Rotate(DownPieces, new Vector3(0, -1, 0)));
+
+        else if (Input.GetKeyDown(KeyCode.A))
+            StartCoroutine(Rotate(LeftPieces, new Vector3(0, 0, -1)));
+
+        else if (Input.GetKeyDown(KeyCode.D))
+            StartCoroutine(Rotate(RightPieces, new Vector3(0, 0, 1)));
+
+        else if (Input.GetKeyDown(KeyCode.B))
+            StartCoroutine(Rotate(FrontPieces, new Vector3(1, 0, 0)));
+
+        else if (Input.GetKeyDown(KeyCode.F))
+            StartCoroutine(Rotate(BackPieces, new Vector3(-1, 0, 0)));
+
+        else if (Input.GetKeyDown(KeyCode.R) && canShuffle)
+            StartCoroutine(Shuffle());
+        else if (Input.GetKeyDown(KeyCode.E) && canShuffle)
+            CreateCube();
+
+            }
+
+    IEnumerator Shuffle()
+    {
+        Debug.Log("InShuffle");
+        canShuffle = false;
+        for(int MoveCount = Random.Range(15,30);MoveCount>=0; MoveCount-=1)
+        {
+            int edge = Random.Range(0, 6);
+            List<GameObject> edgePieces = new List<GameObject>();
+
+            switch (edge)
+            {
+                case 0: edgePieces = UpPieces;break;
+                case 1: edgePieces = DownPieces; break;
+                case 2: edgePieces = LeftPieces; break;
+                case 3: edgePieces = RightPieces; break;
+                case 4: edgePieces = FrontPieces; break;
+                case 5: edgePieces = BackPieces; break;
+            }
+            StartCoroutine(Rotate(edgePieces, RotationVectors[edge],15));
+            yield return new WaitForSeconds(.3f);
+        }
+        canShuffle = true;
+
+    }
+
+	IEnumerator Rotate(List<GameObject> pieces,Vector3 rotationVec, int speed = 5)
+	{	canRotate = false;
+		int angle = 0;
+		while(angle<90)
+		{	
+			foreach(GameObject go in pieces)
+					go.transform.RotateAround(CubeCenterPiece.transform.position,rotationVec, speed);
+			angle +=speed;
+			yield return null;
+		}
+        CheckComplete();
+		canRotate = true;
+	}
+    void CheckComplete()
+    {
+        if (SideComplete(UpPieces) &&
+            SideComplete(DownPieces) &&
+            SideComplete(LeftPieces) &&
+            SideComplete(RightPieces) &&
+            SideComplete(FrontPieces) &&
+            SideComplete(BackPieces))
+            Debug.Log("Complete");
+
+    }
+    bool SideComplete(List<GameObject> pieces)
+    {
+        int mainPlaneIndex = pieces[4].GetComponent<CubePieceScript>().Planes.FindIndex(x => x.activeInHierarchy);
+        for(int i = 0; i<pieces.Count;i++)
+        {
+            if (!pieces[i].GetComponent<CubePieceScript>().Planes[mainPlaneIndex].activeInHierarchy ||
+                pieces[i].GetComponent<CubePieceScript>().Planes[mainPlaneIndex].GetComponent<Renderer>().material.color !=
+                pieces[Mathf.FloorToInt(SizeSideCube*SizeSideCube/2)].GetComponent<CubePieceScript>().Planes[mainPlaneIndex].GetComponent<Renderer>().material.color)
+                return false;
+        }
+        return true;
+    }
+
+
+    public void DetectRotate(List<GameObject> pieces, List<GameObject> planes)
+    {
+        if (!canShuffle || !canRotate) {
+            return; }
+        for (int i = 1; i < SizeSideCube - 1; i++) 
+            if (centralPieces[1, i].Exists(x => x == pieces[0]) &&
+                centralPieces[1, i].Exists(x => x == pieces[1]))
+            {
+                StartCoroutine(Rotate(centralPieces[1, i], new Vector3(0, 0, 1 * DetectLeftMiddleRightSign(pieces))));
+            }
+        for (int i = 1; i < SizeSideCube - 1; i++)
+        if (centralPieces[0,i].Exists(x => x == pieces[0]) &&
+            centralPieces[0,i].Exists(x => x == pieces[1]))
+            {
+                StartCoroutine(Rotate(centralPieces[0,i], new Vector3(0, 1 * DetectUpMiddleDownSign(pieces), 0)));
+            }
+        
+
+        for (int i = 1; i < SizeSideCube - 1; i++)
+        if (centralPieces[2,i].Exists(x => x == pieces[0]) &&
+            centralPieces[2,i].Exists(x => x == pieces[1]))
+        {
+            StartCoroutine(Rotate(centralPieces[2,i], new Vector3(1 * DetectFrontMiddleBackSign(pieces), 0, 0)));
+        }
+
+
+
+        else if(DetectSide(planes, new Vector3(1,0,0),new Vector3(0,0,1), UpPieces))
+        {
+            StartCoroutine(Rotate(UpPieces, new Vector3(0,1*DetectUpMiddleDownSign(pieces), 0)));
+        }
+
+        else if (DetectSide(planes, new Vector3(1, 0, 0), new Vector3(0, 0, 1), DownPieces))
+        {
+            StartCoroutine(Rotate(DownPieces, new Vector3(0, 1 * DetectUpMiddleDownSign(pieces), 0)));
+        }
+        else if (DetectSide(planes, new Vector3(0, 0, 1), new Vector3(0, 1, 0), FrontPieces))
+        {
+            StartCoroutine(Rotate(FrontPieces, new Vector3(1 * DetectFrontMiddleBackSign(pieces), 0, 0)));
+        }
+        else if (DetectSide(planes, new Vector3(0, 0, 1), new Vector3(0, 1, 0), BackPieces))
+        {
+            StartCoroutine(Rotate(BackPieces, new Vector3(1 * DetectFrontMiddleBackSign(pieces), 0, 0)));
+        }
+
+        else if (DetectSide(planes, new Vector3(1, 0, 0), new Vector3(0, 1, 0), LeftPieces))
+        {
+            StartCoroutine(Rotate(LeftPieces, new Vector3(0, 0, 1*DetectLeftMiddleRightSign(pieces))));
+        }
+
+        else if (DetectSide(planes, new Vector3(1, 0, 0), new Vector3(0, 1, 0), RightPieces))
+        {
+            StartCoroutine(Rotate(RightPieces, new Vector3(0, 0, 1*DetectLeftMiddleRightSign(pieces))));
+        }
+    }
+
+    bool DetectSide(List<GameObject> planes, Vector3 fDirection, Vector3 sDirection, List<GameObject> side)
+    {
+        GameObject centerPiece = side.Find(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 1);
+        //Debug.Log(centerPiece);
+        List<RaycastHit> hit1 = new List<RaycastHit>(Physics.RaycastAll(planes[1].transform.position, fDirection)),
+                          hit2 = new List<RaycastHit>(Physics.RaycastAll(planes[0].transform.position, fDirection)),
+                          hit1_m = new List<RaycastHit>(Physics.RaycastAll(planes[1].transform.position, -fDirection)),
+                          hit2_m = new List<RaycastHit>(Physics.RaycastAll(planes[0].transform.position, -fDirection)),
+
+                          hit3 = new List<RaycastHit>(Physics.RaycastAll(planes[1].transform.position, sDirection)),
+                          hit4 = new List<RaycastHit>(Physics.RaycastAll(planes[0].transform.position, sDirection)),
+                          hit3_m = new List<RaycastHit>(Physics.RaycastAll(planes[1].transform.position, -sDirection)),
+                          hit4_m = new List<RaycastHit>(Physics.RaycastAll(planes[0].transform.position, -sDirection));
+
+
+      //  Debug.Log(hit1[0].collider.gameObject == centerPiece);
+
+
+        return 
+            hit1.Exists(x=>x.collider.gameObject == centerPiece) ||
+            hit2.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit1_m.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit2_m.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit3.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit4.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit3_m.Exists(x => x.collider.gameObject == centerPiece) ||
+            hit4_m.Exists(x => x.collider.gameObject == centerPiece);
+    }
+
+    float DetectLeftMiddleRightSign(List<GameObject> pieces) {
+        float sign = 0;
+        if (Mathf.Round(pieces[1].transform.position.y) != Mathf.Round(pieces[0].transform.position.y))
+        {
+            if (Mathf.Round(pieces[0].transform.position.x) ==-2)
+            {
+                sign = Mathf.Round(pieces[0].transform.position.y)-Mathf.Round(pieces[1].transform.position.y);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[1].transform.position.y) - Mathf.Round(pieces[0].transform.position.y);
+            }
+        }
+        else
+        {
+            if (Mathf.Round(pieces[0].transform.position.y) == -2)
+            {
+                sign = Mathf.Round(pieces[1].transform.position.x) - Mathf.Round(pieces[0].transform.position.x);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[0].transform.position.x) - Mathf.Round(pieces[1].transform.position.x);
+            }
+        }
+        return sign;
+    }
+    float DetectFrontMiddleBackSign(List<GameObject> pieces)
+    {
+        float sign = 0;
+        if (Mathf.Round(pieces[1].transform.position.z) != Mathf.Round(pieces[0].transform.position.z))
+        {
+            if (Mathf.Round(pieces[0].transform.position.y) == 0)
+            {
+                sign = Mathf.Round(pieces[1].transform.position.z) - Mathf.Round(pieces[0].transform.position.z);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[0].transform.position.z) - Mathf.Round(pieces[1].transform.position.z);
+            }
+        }
+        else
+        {
+            if (Mathf.Round(pieces[0].transform.position.z) == 0)
+            {
+                sign = Mathf.Round(pieces[1].transform.position.y) - Mathf.Round(pieces[0].transform.position.y);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[0].transform.position.y) - Mathf.Round(pieces[1].transform.position.y);
+            }
+        }
+        return sign;
+    }
+    float DetectUpMiddleDownSign(List<GameObject> pieces)
+    {
+        float sign = 0;
+        if (Mathf.Round(pieces[1].transform.position.z) != Mathf.Round(pieces[0].transform.position.z))
+        {
+            if (Mathf.Round(pieces[0].transform.position.x) == -2)
+            {
+                sign = Mathf.Round(pieces[1].transform.position.z) - Mathf.Round(pieces[0].transform.position.z);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[0].transform.position.z) - Mathf.Round(pieces[1].transform.position.z);
+            }
+        }
+        else
+        {
+            if (Mathf.Round(pieces[0].transform.position.z) == 0)
+            {
+                sign = Mathf.Round(pieces[0].transform.position.x) - Mathf.Round(pieces[1].transform.position.x);
+
+            }
+            else
+            {
+                sign = Mathf.Round(pieces[1].transform.position.x) - Mathf.Round(pieces[0].transform.position.x);
+            }
+        }
+        return sign;
+    }
+}
