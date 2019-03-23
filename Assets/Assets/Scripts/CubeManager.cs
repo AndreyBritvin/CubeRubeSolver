@@ -13,6 +13,9 @@ public class CubeManager : MonoBehaviour {
     bool canRotate = true,
         canShuffle = true;
     public GameObject cam;
+
+    public int speed = 5;
+
     Vector3[] RotationVectors ={
         new Vector3(0,1,0),
         new Vector3(0,-1,0),
@@ -276,7 +279,7 @@ public class CubeManager : MonoBehaviour {
 
     }
     
-   IEnumerator buildCube()
+   public IEnumerator buildCube()
    {
        resetList();
        yield return BuildWhiteKrest(sides);
@@ -302,12 +305,12 @@ public class CubeManager : MonoBehaviour {
             yield return new WaitForSeconds(.3f);
         }
     }
-    IEnumerator shuffle4()
+    public IEnumerator shuffle4()
    {
-           yield return Shuffle();
-           yield return Shuffle();
-           yield return Shuffle();
-           yield return Shuffle();
+        for (int i = 0; i<Buttons.qualShuffle;i++)
+        {
+            yield return Shuffle();
+        }
    }
     IEnumerator Shuffle()
     {
@@ -591,7 +594,7 @@ public class CubeManager : MonoBehaviour {
         
        
         bool canSolve = true;
-        int speed = 5;
+      //  int speed = 5;
         if (canSolve)
         {
 
@@ -735,7 +738,7 @@ public class CubeManager : MonoBehaviour {
                else if(angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.x))) || angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.z))))
                 {
                     print("InSecondIf");
-                    speed = 5;
+         //           speed = 5;
                     int j = GetCentralSide(centralSides, piece);
                     print(j);
                     if (Mathf.Round(piece.transform.position.x) == -2 || Mathf.Round(piece.transform.position.z) == 2)
@@ -744,7 +747,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j], speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j+3], speed);
-                        speed = 5;
+                  //      speed = 5;
                         break;
                     }
                     else
@@ -753,7 +756,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j + 3], speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j], speed);
-                        speed = 5;
+               //         speed = 5;
                         break;
                     }
        
@@ -951,7 +954,7 @@ public class CubeManager : MonoBehaviour {
         
         foreach(GameObject corner in WhiteCorners)
         {
-            int speed = 5;
+           // int speed = 5;
             int x = Mathf.RoundToInt(corner.transform.position.x);
             int y = Mathf.RoundToInt(corner.transform.position.y);
             int z = Mathf.RoundToInt(corner.transform.position.z);
@@ -1407,7 +1410,7 @@ public class CubeManager : MonoBehaviour {
         colors.Add(new Color(1,1,1,1));
         colors.Add(new Color(1,1,0,1));
         List<GameObject> colorRebra = GetObjsByTwoColors(Rebra, colors);
-        int speed = 5;
+    //   int speed = 5;
 
         foreach(GameObject cubik in colorRebra)
         {
@@ -1422,7 +1425,7 @@ public class CubeManager : MonoBehaviour {
                 int vecy = 0;
                 int vecx = (Mathf.RoundToInt(sides[occ[0]][GetPlaneCenter(sides[occ[0]])].transform.position.z) - Mathf.RoundToInt(cubik.transform.position.z));
 
-                speed = 5;
+              //  speed = 5;
              if(occ[0] == 3 && occ[1] == 4)
                 {
                     yield return Rotate(sides[3], -RotationVectors[3],speed);
@@ -1537,7 +1540,7 @@ public class CubeManager : MonoBehaviour {
             if (isGoodPiece && ((numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.x)) || numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.z))) && Mathf.Round(cubik.transform.eulerAngles.y) == 0 ) ||
                 (false))
             {
-                speed = 5;
+             //   speed = 5;
                 if (SideCube[0] == 2)
                 {
                     if (occ == 5)
@@ -1757,7 +1760,7 @@ public class CubeManager : MonoBehaviour {
             Rebra.AddRange(sides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 2));
 
         }
-        int speed = 5;
+   //     int speed = 5;
         List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1, 1, 0, 1));
         yield return RotateDown(yellowRebra, speed);
         yield return null;
@@ -2034,7 +2037,7 @@ public class CubeManager : MonoBehaviour {
         }
         else { situation = "notOpposite"; }
 
-        speed = 5;
+        //speed = 5;
         if (situation == "notOpposite")
         {
             if (side == sides[4])
@@ -2251,7 +2254,9 @@ public class CubeManager : MonoBehaviour {
 
 
         }
-        int speed = 5;
+        //
+
+        //int speed = 5;
 
 
         yield return PutYellowCornersOnTheirPlaces(whoStayWrong, speed);
@@ -2394,7 +2399,7 @@ public class CubeManager : MonoBehaviour {
 
             if (thirdSide == sides[2])//green
             {
-                speed = 5;
+             //   speed = 5;
                 yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
                 yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
                 yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
@@ -2445,7 +2450,7 @@ public class CubeManager : MonoBehaviour {
         }
         else if (wsw.Count == 4)
         {
-            speed = 5;
+        //    speed = 5;
             yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
             yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
             yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
@@ -2590,7 +2595,7 @@ public class CubeManager : MonoBehaviour {
 
     IEnumerator RotateCorners(List<GameObject> whoStWr, int speed)
     {
-        speed = 5;
+   //     speed = 5;
         if (whoStWr.Count == 0) yield break;
         if (whoStWr.Count == 2)
         {
