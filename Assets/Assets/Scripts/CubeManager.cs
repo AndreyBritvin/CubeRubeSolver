@@ -181,7 +181,7 @@ public class CubeManager : MonoBehaviour {
         if (canRotate) {
             CheckInput();
         } }
-    void CreateCube()
+    public void CreateCube()
     {
         foreach (GameObject go in AllCubePieces)
         {
@@ -314,6 +314,9 @@ public class CubeManager : MonoBehaviour {
    }
     IEnumerator Shuffle()
     {
+        List<int> umn = new List<int>();
+        umn.Add(-1);
+        umn.Add(1);
         Debug.Log("InShuffle");
         canShuffle = false;
         for (int MoveCount = Random.Range(15, 30); MoveCount >= 0; MoveCount -= 1)
@@ -330,7 +333,8 @@ public class CubeManager : MonoBehaviour {
                 case 4: edgePieces = FrontPieces; break;
                 case 5: edgePieces = BackPieces; break;
             }
-            StartCoroutine(Rotate(edgePieces, RotationVectors[edge], 45));
+            int vec = umn[Random.Range(0, 1)];
+            StartCoroutine(Rotate(edgePieces, vec*RotationVectors[edge], 45));
             yield return new WaitForSeconds(.1f);
         }
         canShuffle = true;
@@ -378,7 +382,29 @@ public class CubeManager : MonoBehaviour {
         centralSides.Add(UpVertical);
         centralSides.Add(FrontHorizontalPieces);
     }
+
     void CheckComplete()
+    {
+        int whoStTrue = 0;
+        foreach(GameObject Cubik in AllCubePieces)
+        {
+            if (IsPieceOnPlace(Cubik))
+            {
+                whoStTrue++;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(AllCubePieces.Count == whoStTrue)
+        {
+            print("Complete");
+        }
+
+    }
+    void CheckComplete_dontwork()
     {
         if (SideComplete(UpPieces) &&
             SideComplete(DownPieces) &&
@@ -1751,7 +1777,7 @@ public class CubeManager : MonoBehaviour {
     IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
     {
 
-        cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
+        //cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
 
         List<GameObject> Rebra = new List<GameObject>();
 
@@ -3048,5 +3074,66 @@ public class CubeManager : MonoBehaviour {
             }
         }
         yield return null;
+    }
+
+    public IEnumerator design_center()
+    {
+        /* for (int i = 0; i < 4; i++)
+         {
+             yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+             yield return Rotate(FrontHorizontalPieces, new Vector3(0, 1, 0), speed);
+         }*/
+        yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+
+    }
+
+    public IEnumerator design_chess()
+    {
+        yield return Rotate(RightPieces, new Vector3(0,0,1),speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(UpPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(UpPieces, new Vector3(0, 1, 0), speed);
+    }
+
+    public IEnumerator design_cubeincube()
+    {
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+       
+
+    }
+
+    public IEnumerator design_Unknown()
+    {
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+  
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+
+
     }
 }
