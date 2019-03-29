@@ -1,18 +1,24 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CubeManager : MonoBehaviour {
     public GameObject CubePiecePref;
+    public bool IsSolve = false;
     Transform CubeTransf;
     public static int SizeSideCube = 3;
     List<GameObject> AllCubePieces = new List<GameObject>();
+    List<Vector3> AllCubePieces_copy = new List<Vector3>();
     GameObject CubeCenterPiece;
     int numOfRotations = 0;
     int indexCenter;
     bool canRotate = true,
         canShuffle = true;
     public GameObject cam;
+    public string inProcess = " в процессе";
+    public string ready = " готово";
+    public Text infoText;
 
     public int speed = 5;
 
@@ -103,7 +109,7 @@ public class CubeManager : MonoBehaviour {
         }
     }
     List<GameObject>[,] centralPieces = new List<GameObject>[3, SizeSideCube]; // [0] = frontHorizontal; [1] = [UpVertical]; [2] = UpHorizontals
-    List<List<GameObject>> sides = new List<List<GameObject>>();
+    public List<List<GameObject>> sides = new List<List<GameObject>>();
     List<List<GameObject>> centralSides = new List<List<GameObject>>();
     void getCentralPieces()
     {
@@ -151,7 +157,7 @@ public class CubeManager : MonoBehaviour {
 
 
 
-
+                    
                 }
 
                 else if (i == 2)
@@ -166,8 +172,7 @@ public class CubeManager : MonoBehaviour {
         // Debug.Log(centralPieces);
     }
 
-
-
+    
     void Start() {
         CubeTransf = transform;
 
@@ -187,16 +192,21 @@ public class CubeManager : MonoBehaviour {
         {
             DestroyImmediate(go);
         }
+        AllCubePieces_copy.Clear();
         AllCubePieces.Clear();
         for (int x = 0; x < SizeSideCube; x++)
             for (int y = 0; y < SizeSideCube; y++)
                 for (int z = 0; z < SizeSideCube; z++)
                 {
+                    
                     GameObject go = Instantiate(CubePiecePref, CubeTransf, false);
                     go.transform.localPosition = new Vector3(-x, -y, z);
                     go.GetComponent<CubePieceScript>().SetColor(-x, -y, z);
+                    //AllCubePieces_copy.Add(go);
+                    AllCubePieces_copy.Add(go.transform.position);
                     AllCubePieces.Add(go);
                 }
+       
         indexCenter = (int)Mathf.Floor((SizeSideCube * SizeSideCube * SizeSideCube) / 2);
         CubeCenterPiece = AllCubePieces[indexCenter];
     }
@@ -236,24 +246,7 @@ public class CubeManager : MonoBehaviour {
         }
 
 
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            resetList();
-            
-            StartCoroutine(BuildWhiteKrest(sides));
-        }
-        else if (Input.GetKeyDown(KeyCode.Z))
-        {
-
-            resetList();
-            StartCoroutine(BuildWhiteCorner(sides));
-        }
-        else if(Input.GetKeyDown(KeyCode.X))
-        {
-            resetList();
-            StartCoroutine(BuildColourRebra(sides));
-        }
-
+      
         if (Input.GetKeyDown(KeyCode.W))
             StartCoroutine(Rotate(UpPieces, new Vector3(0, 1, 0)));
 
@@ -293,18 +286,23 @@ public class CubeManager : MonoBehaviour {
        yield return ReturnAndPlaceOnTruePlaceYellowCorners(sides);
 
    }
-    IEnumerator morgat()
+
+
+    IEnumerator morgat(GameObject cube)
     {
-        Color baseColor = AllCubePieces[0].GetComponent<Renderer>().material.color;
-        for (int i = 0; i < 10; i++)
+        Color baseColor = cube.GetComponent<Renderer>().material.color;
+        for (int i = 0; i < 25; i++)
         {
 
-            AllCubePieces[0].GetComponent<Renderer>().material.color = new Color(1, 0.5f, 0.5f, 0);
+            cube.GetComponent<Renderer>().material.color = new Color(1, 0.5f, 0.5f, 0);
             yield return new WaitForSeconds(.3f);
-            AllCubePieces[0].GetComponent<Renderer>().material.color = baseColor;
+            cube.GetComponent<Renderer>().material.color = baseColor;
             yield return new WaitForSeconds(.3f);
         }
+        cube.GetComponent<Renderer>().material.color = baseColor;
     }
+
+
     public IEnumerator shuffle4()
    {
         for (int i = 0; i<Buttons.qualShuffle;i++)
@@ -360,7 +358,7 @@ public class CubeManager : MonoBehaviour {
         resetList();
     }
     
-    void resetList()
+    public void resetList()
     {
         sides.Clear();
         centralSides.Clear();
@@ -596,9 +594,11 @@ public class CubeManager : MonoBehaviour {
     }
 
 
-    IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
     {
-
+        infoText.text = "1. Сбор белого креста:";
+        infoText.text = infoText.text.Insert(infoText.text.Length, inProcess);
+        
         Color whiteColor = Color.white;
 
         List<GameObject> Rebra = new List<GameObject>();
@@ -625,8 +625,14 @@ public class CubeManager : MonoBehaviour {
         {
 
             foreach (GameObject whiteRebro in WhiteRebra) {
+
+
                 Debug.Log("InSolving:)");
-              
+             //   print(whiteRebro.transform.position);
+            //    print(startPos(whiteRebro).transform.position);
+                StartCoroutine(morgat(whiteRebro));
+          //      StartCoroutine(morgat(startPos(whiteRebro)));
+
                 if (Mathf.Round(whiteRebro.transform.position.y) == 0 && !IsPieceOnPlace(whiteRebro))
                 { 
                     Debug.Log("In y == 0");
@@ -713,6 +719,7 @@ public class CubeManager : MonoBehaviour {
                 }
             }
         }
+        infoText.text = infoText.text.Replace(inProcess, ready);
 
     }
 
@@ -794,6 +801,8 @@ public class CubeManager : MonoBehaviour {
 
             
         }
+
+
     }
                
     bool IsPieceUnderSameColor(List<GameObject> activePlanesPiece, List<GameObject> activePlanesCenter)
@@ -962,8 +971,13 @@ public class CubeManager : MonoBehaviour {
 
 
 
-    IEnumerator BuildWhiteCorner(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildWhiteCorner(List<List<GameObject>> cubeSides)
     {
+        if(IsSolve)
+        {
+            yield return BuildWhiteKrest(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n2. Сбор 1 ряда:"+inProcess);
         Color whiteColor = Color.white;
 
         List<GameObject> corners = new List<GameObject>();
@@ -980,6 +994,7 @@ public class CubeManager : MonoBehaviour {
         
         foreach(GameObject corner in WhiteCorners)
         {
+           
            // int speed = 5;
             int x = Mathf.RoundToInt(corner.transform.position.x);
             int y = Mathf.RoundToInt(corner.transform.position.y);
@@ -1028,8 +1043,13 @@ public class CubeManager : MonoBehaviour {
                 yield return RotateDownToBuildWhiteCorner(corner, speed);
             }
         }
+        infoText.text = infoText.text.Replace(inProcess, ready);
         yield return null;
     }
+
+    
+
+   
     string GetColorByColor(Color color)
     {
         
@@ -1420,8 +1440,13 @@ public class CubeManager : MonoBehaviour {
         return -1;
     }
 
-    IEnumerator BuildColourRebra(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildColourRebra(List<List<GameObject>> cubeSides)
     {
+        if (IsSolve)
+        {
+            yield return BuildWhiteCorner(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n3. Сбор 2 ряда:" + inProcess);
         Color whiteColor = Color.white;
 
         List<GameObject> Rebra = new List<GameObject>();
@@ -1498,11 +1523,13 @@ public class CubeManager : MonoBehaviour {
                 
                 
             }
-          
-            
-            yield return RotateDownToBuildRebra(speed, cubik);
-            
+
+            if (Mathf.Round(cubik.transform.position.y) == -2)
+            {
+                yield return RotateDownToBuildRebra(speed, cubik);
+            }
         }
+        infoText.text = infoText.text.Replace(inProcess, ready);
         yield return null;
     }
 
@@ -1774,10 +1801,14 @@ public class CubeManager : MonoBehaviour {
         }
     }
 
-    IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
+    public IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
     {
-
-        //cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
+        if (IsSolve)
+        {
+            yield return BuildColourRebra(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n4. Сбор желтого креста:" + inProcess);
+        cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
 
         List<GameObject> Rebra = new List<GameObject>();
 
@@ -1790,6 +1821,7 @@ public class CubeManager : MonoBehaviour {
         List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1, 1, 0, 1));
         yield return RotateDown(yellowRebra, speed);
         yield return null;
+        infoText.text = infoText.text.Replace(inProcess, ready);
     }
 
     List<GameObject> GetnumOfOnPlace(List<GameObject> rebra)
@@ -2047,7 +2079,7 @@ public class CubeManager : MonoBehaviour {
             yield return null;
     }
 
-    IEnumerator PutYellowRebraOnTheirPlaces(List<GameObject> side, List<GameObject> wrongpieces, int speed)
+     IEnumerator PutYellowRebraOnTheirPlaces(List<GameObject> side, List<GameObject> wrongpieces, int speed)
     {
         int x = Mathf.RoundToInt(wrongpieces[0].transform.position.x);
         int z = Mathf.RoundToInt(wrongpieces[0].transform.position.z);
@@ -2236,9 +2268,14 @@ public class CubeManager : MonoBehaviour {
         return forreturn;
     }
 
-    IEnumerator ReturnAndPlaceOnTruePlaceYellowCorners(List<List<GameObject>> cubeSides)
+    public IEnumerator ReturnAndPlaceOnTruePlaceYellowCorners(List<List<GameObject>> cubeSides)
 
     {
+        if (IsSolve)
+        {
+            yield return ReturnAndPlaceOnTruePlaceYellowRebra(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n5. Расстановка и поворот уголков:" + inProcess);
         Color whiteColor = new Color(1, 1, 0, 1);
 
         List<GameObject> corners = new List<GameObject>();
@@ -2385,6 +2422,8 @@ public class CubeManager : MonoBehaviour {
         whoStayWrong = wstwr(WhiteCorners);
         yield return RotateCorners(whoStayWrong, speed);
         yield return null;
+
+        infoText.text = infoText.text.Replace(inProcess, ready);
     }
 
     IEnumerator PutYellowCornersOnTheirPlaces(List<GameObject> wsw, int speed)//whoStayWorng

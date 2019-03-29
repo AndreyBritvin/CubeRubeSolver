@@ -7,6 +7,7 @@ public class Buttons : MonoBehaviour {
     bool IsModePressed = false;
     bool IsSettingsPressed = false;
     bool IsDesignPressed = false;
+    bool IsSolvePressed = false;
     public GameObject modePanel;
     public GameObject SettingsPanel;
     public static int qualShuffle = 5;
@@ -14,8 +15,10 @@ public class Buttons : MonoBehaviour {
     public Slider sliderSens;
     public Slider sliderSpeed;
     public GameObject designPanel;
-
+    public GameObject solvePanel;
     public GameObject colorPanel;
+
+
     bool IsColorPressed = false;
 
     public static int xSens = 15;
@@ -33,6 +36,21 @@ public class Buttons : MonoBehaviour {
         {
             IsModePressed = false;
             modePanel.SetActive(false);
+        }
+    }
+
+    public void solveButton()
+    {
+
+        if (!IsSolvePressed)
+        {
+            IsSolvePressed = true;
+            solvePanel.SetActive(true);
+        }
+        else
+        {
+            IsSolvePressed = false;
+            solvePanel.SetActive(false);
         }
     }
 
@@ -90,7 +108,10 @@ public class Buttons : MonoBehaviour {
     {
         IsDesignPressed = false;
         IsModePressed = false;
+        IsSolvePressed = false;
+        solvePanel.SetActive(false);
         modePanel.SetActive(false);
+        
     }
     public void shuffleButton()
     {
@@ -160,5 +181,54 @@ public class Buttons : MonoBehaviour {
             IsColorPressed = false;
             colorPanel.SetActive(false);
         }
+    }
+
+
+
+
+    public void whiteK()//krest
+    {
+        Resetmode();
+        cubeM.IsSolve = true;
+        cubeM.resetList();
+        StartCoroutine(cubeM.BuildWhiteKrest(cubeM.sides));
+        cubeM.IsSolve = false;
+
+    }
+
+    public void whiteC()//color
+    {
+        Resetmode();
+        cubeM.IsSolve = true;
+        cubeM.resetList();
+        StartCoroutine(cubeM.BuildWhiteCorner(cubeM.sides));
+        cubeM.IsSolve = false;
+    }
+
+    public void ColourR()//colour rebra
+    {
+        Resetmode();
+        cubeM.IsSolve = true;
+        cubeM.resetList();
+        StartCoroutine(cubeM.BuildColourRebra(cubeM.sides));
+        cubeM.IsSolve = false;
+    }
+
+    public void yellowK()//krest
+    {
+        Resetmode();
+        cubeM.IsSolve = true;
+        cubeM.resetList();
+        StartCoroutine(cubeM.ReturnAndPlaceOnTruePlaceYellowRebra(cubeM.sides));
+        cubeM.IsSolve = false;
+    }
+
+    public void yellowC()//corners
+    {
+        Resetmode();
+        cubeM.IsSolve = true;
+        cubeM.resetList();
+        StartCoroutine(cubeM.ReturnAndPlaceOnTruePlaceYellowCorners(cubeM.sides));
+        cubeM.IsSolve = false;
     }
 }
