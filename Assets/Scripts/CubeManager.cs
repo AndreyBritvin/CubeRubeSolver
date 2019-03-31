@@ -1,17 +1,29 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CubeManager : MonoBehaviour {
     public GameObject CubePiecePref;
+    public bool IsSolve = false;
+    public bool isUnderstand = false;
     Transform CubeTransf;
     public static int SizeSideCube = 3;
     List<GameObject> AllCubePieces = new List<GameObject>();
+    List<Vector3> AllCubePieces_copy = new List<Vector3>();
     GameObject CubeCenterPiece;
+    int numOfRotations = 0;
     int indexCenter;
     bool canRotate = true,
         canShuffle = true;
-    int numOfRotations = 0;
+    public GameObject cam;
+    public string inProcess = " в процессе";
+    public string ready = " готово";
+    public Text infoText;
+    public Text solveText;
+    public GameObject YesButton;
+    public int speed = 5;
+
     Vector3[] RotationVectors ={
         new Vector3(0,1,0),
         new Vector3(0,-1,0),
@@ -99,9 +111,8 @@ public class CubeManager : MonoBehaviour {
         }
     }
     List<GameObject>[,] centralPieces = new List<GameObject>[3, SizeSideCube]; // [0] = frontHorizontal; [1] = [UpVertical]; [2] = UpHorizontals
-    List<List<GameObject>> sides = new List<List<GameObject>>();
+    public List<List<GameObject>> sides = new List<List<GameObject>>();
     List<List<GameObject>> centralSides = new List<List<GameObject>>();
-    
     void getCentralPieces()
     {
         /*
@@ -148,7 +159,7 @@ public class CubeManager : MonoBehaviour {
 
 
 
-
+                    
                 }
 
                 else if (i == 2)
@@ -163,45 +174,46 @@ public class CubeManager : MonoBehaviour {
         // Debug.Log(centralPieces);
     }
 
-
-
+    
     void Start() {
         CubeTransf = transform;
-        
+
         CreateCube();
         getCentralPieces();
     }
 
     void Update() {
 
-     
 
         if (canRotate) {
             CheckInput();
         } }
-    void CreateCube()
+    public void CreateCube()
     {
         foreach (GameObject go in AllCubePieces)
         {
             DestroyImmediate(go);
         }
+        AllCubePieces_copy.Clear();
         AllCubePieces.Clear();
         for (int x = 0; x < SizeSideCube; x++)
             for (int y = 0; y < SizeSideCube; y++)
                 for (int z = 0; z < SizeSideCube; z++)
                 {
+                    
                     GameObject go = Instantiate(CubePiecePref, CubeTransf, false);
                     go.transform.localPosition = new Vector3(-x, -y, z);
                     go.GetComponent<CubePieceScript>().SetColor(-x, -y, z);
+                    //AllCubePieces_copy.Add(go);
+                    AllCubePieces_copy.Add(go.transform.position);
                     AllCubePieces.Add(go);
                 }
+       
         indexCenter = (int)Mathf.Floor((SizeSideCube * SizeSideCube * SizeSideCube) / 2);
         CubeCenterPiece = AllCubePieces[indexCenter];
     }
     void CheckInput()
     {
-
-
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -228,13 +240,15 @@ public class CubeManager : MonoBehaviour {
         else if (Input.GetKeyDown(KeyCode.V))
         {
             resetList();
-            StartCoroutine(ReturnAndPlaceOnTruePlaceYellowCorners(sides));
+                  StartCoroutine(ReturnAndPlaceOnTruePlaceYellowCorners(sides));
         }
         else if (Input.GetKeyDown(KeyCode.G))
         {
-            StartCoroutine(buildCube());
+             StartCoroutine(buildCube());
         }
 
+
+      
         if (Input.GetKeyDown(KeyCode.W))
             StartCoroutine(Rotate(UpPieces, new Vector3(0, 1, 0)));
 
@@ -254,36 +268,55 @@ public class CubeManager : MonoBehaviour {
             StartCoroutine(Rotate(BackPieces, new Vector3(-1, 0, 0)));
 
         else if (Input.GetKeyDown(KeyCode.R) && canShuffle)
-        {
             StartCoroutine(shuffle4());
-        }
         else if (Input.GetKeyDown(KeyCode.E) && canShuffle)
             CreateCube();
 
     }
-    IEnumerator buildCube()
+    
+   public IEnumerator buildCube()
+   {
+       resetList();
+       yield return BuildWhiteKrest(sides);
+       resetList();
+       yield return BuildWhiteCorner(sides);
+       resetList();
+       yield return BuildColourRebra(sides);
+       resetList();
+       yield return ReturnAndPlaceOnTruePlaceYellowRebra(sides);
+       resetList();
+       yield return ReturnAndPlaceOnTruePlaceYellowCorners(sides);
+
+   }
+
+
+    IEnumerator morgat(GameObject cube)
     {
-        resetList();
-        yield return BuildWhiteKrest(sides);
-        resetList();
-        yield return BuildWhiteCorner(sides);
-        resetList();
-        yield return BuildColourRebra(sides);
-        resetList();
-        yield return ReturnAndPlaceOnTruePlaceYellowRebra(sides);
-        resetList();
-        yield return ReturnAndPlaceOnTruePlaceYellowCorners(sides);
-       
+        Color baseColor = cube.GetComponent<Renderer>().material.color;
+        for (int i = 0; i < 25; i++)
+        {
+
+            cube.GetComponent<Renderer>().material.color = new Color(1, 0.5f, 0.5f, 0);
+            yield return new WaitForSeconds(.3f);
+            cube.GetComponent<Renderer>().material.color = baseColor;
+            yield return new WaitForSeconds(.3f);
+        }
+        cube.GetComponent<Renderer>().material.color = baseColor;
     }
-    IEnumerator shuffle4()
-    {
+
+
+    public IEnumerator shuffle4()
+   {
+        for (int i = 0; i<Buttons.qualShuffle;i++)
+        {
             yield return Shuffle();
-            yield return Shuffle();
-            yield return Shuffle();
-            yield return Shuffle();
-    }
+        }
+   }
     IEnumerator Shuffle()
     {
+        List<int> umn = new List<int>();
+        umn.Add(-1);
+        umn.Add(1);
         Debug.Log("InShuffle");
         canShuffle = false;
         for (int MoveCount = Random.Range(15, 30); MoveCount >= 0; MoveCount -= 1)
@@ -300,7 +333,8 @@ public class CubeManager : MonoBehaviour {
                 case 4: edgePieces = FrontPieces; break;
                 case 5: edgePieces = BackPieces; break;
             }
-            StartCoroutine(Rotate(edgePieces, RotationVectors[edge], 45));
+            int vec = umn[Random.Range(0, 1)];
+            StartCoroutine(Rotate(edgePieces, vec*RotationVectors[edge], 45));
             yield return new WaitForSeconds(.1f);
         }
         canShuffle = true;
@@ -310,7 +344,7 @@ public class CubeManager : MonoBehaviour {
 
     {
         //  print("CanRotate = " + canRotate);
-
+        
 
         canRotate = false;
         int angle = 0;
@@ -325,8 +359,8 @@ public class CubeManager : MonoBehaviour {
         canRotate = true;
         resetList();
     }
-
-    void resetList()
+    
+    public void resetList()
     {
         sides.Clear();
         centralSides.Clear();
@@ -348,7 +382,29 @@ public class CubeManager : MonoBehaviour {
         centralSides.Add(UpVertical);
         centralSides.Add(FrontHorizontalPieces);
     }
+
     void CheckComplete()
+    {
+        int whoStTrue = 0;
+        foreach(GameObject Cubik in AllCubePieces)
+        {
+            if (IsPieceOnPlace(Cubik))
+            {
+                whoStTrue++;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(AllCubePieces.Count == whoStTrue)
+        {
+            print("Complete");
+        }
+
+    }
+    void CheckComplete_dontwork()
     {
         if (SideComplete(UpPieces) &&
             SideComplete(DownPieces) &&
@@ -358,7 +414,7 @@ public class CubeManager : MonoBehaviour {
             SideComplete(BackPieces))
         {
             Debug.Log("Complete");
-            //     StopAllCoroutines();
+       //     StopAllCoroutines();
         }
     }
     bool SideComplete(List<GameObject> pieces)
@@ -540,9 +596,11 @@ public class CubeManager : MonoBehaviour {
     }
 
 
-    IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
     {
-
+        infoText.text = "1. Сбор белого креста:";
+        infoText.text = infoText.text.Insert(infoText.text.Length, inProcess);
+        
         Color whiteColor = Color.white;
 
         List<GameObject> Rebra = new List<GameObject>();
@@ -558,31 +616,85 @@ public class CubeManager : MonoBehaviour {
 
         }
 
-
-
+        if(IsSolve)
+        {
+            speed = 2;
+        }
+        
         List<GameObject> WhiteRebra = GetObjsByColor(Rebra, whiteColor);
 
+        int wsw = 0;
+        solveText.text = "находим кубики с белыми ребрами";
+        foreach(GameObject c in WhiteRebra)
+        {
+        
+            if(IsPieceOnPlace(c))
+            {
+                continue;
 
+            }
+            else
+            {
+                wsw++;
+            }
+            
+        }
+        if(IsSolve)
+        {
+            Coroutine lastRoutine = null;
+            Coroutine lastRoutine1 = null;
+            Coroutine lastRoutine2 = null;
+
+            Coroutine lastRoutine3 = null;
+            
+            lastRoutine=StartCoroutine(morgat(WhiteRebra[0]));
+            lastRoutine1 = StartCoroutine(morgat(WhiteRebra[1]));
+            lastRoutine2 = StartCoroutine(morgat(WhiteRebra[2]));
+            lastRoutine3 = StartCoroutine(morgat(WhiteRebra[3]));
+
+            yield return new WaitForSeconds(1);
+            
+            
+                StopCoroutine(lastRoutine);
+            StopCoroutine(lastRoutine1);
+            StopCoroutine(lastRoutine2);
+            StopCoroutine(lastRoutine3);
+
+
+        }
+      
         bool canSolve = true;
-        int speed = 5;
+      //  int speed = 5;
         if (canSolve)
         {
 
             foreach (GameObject whiteRebro in WhiteRebra) {
-                Debug.Log("InSolving:)");
 
+                Coroutine lr = null;
+                Debug.Log("InSolving:)");
+             //   print(whiteRebro.transform.position);
+            //    print(startPos(whiteRebro).transform.position);
+                
+          //      StartCoroutine(morgat(startPos(whiteRebro)));
+                if(IsPieceOnPlace(whiteRebro))
+                {
+                    continue;
+                }
+                lr = StartCoroutine(morgat(whiteRebro));
                 if (Mathf.Round(whiteRebro.transform.position.y) == 0 && !IsPieceOnPlace(whiteRebro))
                 {
+                    if (IsSolve)
+                        solveText.text = "опускаем кубик вниз";
                     Debug.Log("In y == 0");
-
+                 
                     if (Mathf.Round(whiteRebro.transform.position.z) == 1 && Mathf.Round(whiteRebro.transform.position.x) == 0)
                     {
 
-                        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed); 
                         yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
                         yield return RotateDownToBuildWhiteKrest(speed, whiteRebro);
                     }
-
+                    
                     else if (Mathf.Round(whiteRebro.transform.position.z) == 2 && Mathf.Round(whiteRebro.transform.position.x) == -1)
                     {
 
@@ -609,20 +721,22 @@ public class CubeManager : MonoBehaviour {
                 }
                 else if (Mathf.Round(whiteRebro.transform.position.y) == -1)
                 {
+                    if(IsSolve)
+                        solveText.text = "опускаем кубик вниз";
                     int x = Mathf.RoundToInt(whiteRebro.transform.position.x);
                     int y = Mathf.RoundToInt(whiteRebro.transform.position.y);
                     int z = Mathf.RoundToInt(whiteRebro.transform.position.z);
 
-                    if (x == 0)
+                    if(x == 0)
                     {
-                        if (z == 0)
+                        if(z == 0)
                         {
                             yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
                             yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                             yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
                             yield return RotateDownToBuildWhiteKrest(speed, whiteRebro);
                         }
-                        else if (z == 2)
+                        else if(z == 2)
                         {
                             yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
                             yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
@@ -630,7 +744,7 @@ public class CubeManager : MonoBehaviour {
                             yield return RotateDownToBuildWhiteKrest(speed, whiteRebro);
                         }
                     }
-                    else if (x == -2)
+                    else if(x == -2)
                     {
                         if (z == 0)
                         {
@@ -655,19 +769,49 @@ public class CubeManager : MonoBehaviour {
                     yield return RotateDownToBuildWhiteKrest(speed, whiteRebro);
 
                 }
+                StopCoroutine(lr);
+                whiteRebro.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+                if(IsSolve)
+                {
+                    break;
+                }
             }
         }
-
+        YesButton.SetActive(true);
+        while (!isUnderstand)
+            yield return new WaitForSeconds(1);
+        YesButton.SetActive(false);
+        if (isUnderstand)
+        {
+            isUnderstand = false;
+            if(wsw==0)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return BuildWhiteKrest(sides);
+            }
+        }
+        
+        solveText.text = "";
+        infoText.text = infoText.text.Replace(inProcess, ready);
+        if (IsSolve)
+            IsSolve = false;
+    }
+    public void Understand()
+    {
+        isUnderstand = true;
     }
 
     IEnumerator RotateDownToBuildWhiteKrest(int speed, GameObject piece)
     {
         foreach (GameObject cubik in GetActivrColors(piece))
         {
-            //     print("PlaneName=" + cubik.name  );
+       //     print("PlaneName=" + cubik.name  );
         }
-
-
+        if (IsSolve)
+            solveText.text = "ставим кубик под свой цвет";
 
         for (int i = 0; i < 4; i++)
 
@@ -675,15 +819,17 @@ public class CubeManager : MonoBehaviour {
             int x = Mathf.RoundToInt(piece.transform.position.x);
             int y = Mathf.RoundToInt(piece.transform.position.y);
             int z = Mathf.RoundToInt(piece.transform.position.z);
-            // print("CenterPiece="+centralPiece(x,y,z).transform.position);
+           // print("CenterPiece="+centralPiece(x,y,z).transform.position);
             int num = GetSide(sides[1], sides, piece)[0];
-            // print("getSide || num = " + num);
+           // print("getSide || num = " + num);
             bool isGoodPiece = IsPieceUnderSameColor(GetActivrColors(piece), GetActivrColors(centralPiece(x, y, z)));
             //  print("I =" + i + " IsGoodPiece = " + isGoodPiece);
 
             //print("getSide = "+GetSide(DownPieces, sides, piece));
             if (isGoodPiece)
             {
+                if (IsSolve)
+                    solveText.text = "смотрим на положение кубика";
                 print("In zero if");
                 //  print(piece.transform.eulerAngles);
                 // print("Rotation_x=" + piece.transform.eulerAngles.x + " Rotation_y=" + piece.transform.eulerAngles.y + " Rotation_z=" + piece.transform.eulerAngles.z);
@@ -693,6 +839,8 @@ public class CubeManager : MonoBehaviour {
 
                 if ((Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.x)) == 180) || (Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.z)) == 180))
                 {
+                    if (IsSolve)
+                        solveText.text = "белый смотрит вниз - вращаем 2 раза грань с кубиком";
                     print("InfirstIf");
 
                     print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
@@ -707,8 +855,10 @@ public class CubeManager : MonoBehaviour {
                 // else if (Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.x)) == 90 || Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.z)) == 90)
                 else if (angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.x))) || angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.z))))
                 {
+                    if (IsSolve)
+                        solveText.text = "опускаем центр и вставляем туда кубик";
                     print("InSecondIf");
-                    speed = 5;
+                    //           speed = 5;
                     int j = GetCentralSide(centralSides, piece);
                     print(j);
                     if (Mathf.Round(piece.transform.position.x) == -2 || Mathf.Round(piece.transform.position.z) == 2)
@@ -717,7 +867,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j], speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j + 3], speed);
-                        speed = 5;
+                        //      speed = 5;
                         break;
                     }
                     else
@@ -726,56 +876,59 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j + 3], speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(centralSides[j], RotationVectorsForCenter[j], speed);
-                        speed = 5;
+                        //         speed = 5;
                         break;
                     }
 
                 }
             }
             else
+            {
+
                 yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+            }
 
-
-
+            
         }
-    }
 
+
+    }
+               
     bool IsPieceUnderSameColor(List<GameObject> activePlanesPiece, List<GameObject> activePlanesCenter)
     {
-        for (int i = 0; i < activePlanesPiece.Count; i++)
+        for(int i = 0; i<activePlanesPiece.Count; i++)
         {
-            if (activePlanesPiece[i].name == activePlanesCenter[0].name)
+            if(activePlanesPiece[i].name == activePlanesCenter[0].name)
             {
                 return true;
             }
         }
         return false;
     }
-
+    
     List<int> GetSide(List<GameObject> exception, List<List<GameObject>> cubeSide, GameObject piece)
     {
 
-        //  print("Start Getside");
-        /*
-          foreach (GameObject cubik in exception)
-          {
-              print("Cubikpos=" + cubik.transform.position);
-          }*/
+        print("Start Getside");/*
+        foreach (GameObject cubik in exception)
+        {
+            print("Cubikpos=" + cubik.transform.position);
+        }*/
         List<int> sides = new List<int>();
         for (int i = 0; i < 6; i++)
         { //  print("I="+i+" cubeSideContains="+cubeSide[i].Contains(piece) +" exception comparison "+ (cubeSide[i] != exception));
-          /*
-          foreach(GameObject cubik in cubeSide[i])
-          {
-              print("Cubikpos="+cubik.transform.position);
-          }*/
-
-            if (cubeSide[i].Contains(piece) && cubeSide[i] != exception)
+            /*
+            foreach(GameObject cubik in cubeSide[i])
+            {
+                print("Cubikpos="+cubik.transform.position);
+            }*/
+            
+            if (cubeSide[i].Contains(piece) && cubeSide[i]!=exception)
                 sides.Add(i);
-
+            
         }
         return sides;
-
+        
     }
 
     int GetCentralSide(List<List<GameObject>> cubeSide, GameObject piece)
@@ -797,11 +950,11 @@ public class CubeManager : MonoBehaviour {
         }
         return -1;
     }
-    List<GameObject> GetObjsByColor(List<GameObject> Rebra, Color color)
+        List<GameObject> GetObjsByColor(List<GameObject> Rebra, Color color)
     {
         List<GameObject> objs = new List<GameObject>();
         int count = 6;
-
+        
 
         foreach (GameObject gg in Rebra)
         {
@@ -829,11 +982,11 @@ public class CubeManager : MonoBehaviour {
     {
         List<GameObject> objs = new List<GameObject>();
         int count = 6;
-        foreach (Color color in colorsExcept)
+        foreach(Color color in colorsExcept)
         {
-            // print("Except Color ="+color);
+           // print("Except Color ="+color);
         }
-
+           
         foreach (GameObject gg in Rebra)
         {
             List<GameObject> planesCube = GetActivrColors(gg);
@@ -853,9 +1006,9 @@ public class CubeManager : MonoBehaviour {
                     //          print("Colorplane[0] =" + planesCube[0].GetComponent<Renderer>().material.color.Equals(colorsExcept[1]));
                     //       print("Colorplane[1] =" + planesCube[1].GetComponent<Renderer>().material.color);
 
-                    // print("Colorplane[1] =" + planesCube[1].GetComponent<Renderer>().material.color.Equals(colorsExcept[0]));
-                    //  print("Colorplane[1] =" + planesCube[1].GetComponent<Renderer>().material.color.Equals(colorsExcept[1]));
-                    //   print(" IsActive =" + gg.GetComponent<CubePieceScript>().Planes[i].activeInHierarchy);
+                   // print("Colorplane[1] =" + planesCube[1].GetComponent<Renderer>().material.color.Equals(colorsExcept[0]));
+                  //  print("Colorplane[1] =" + planesCube[1].GetComponent<Renderer>().material.color.Equals(colorsExcept[1]));
+                 //   print(" IsActive =" + gg.GetComponent<CubePieceScript>().Planes[i].activeInHierarchy);
                     if (!objs.Contains(gg))
                     {
                         // print("Obj was added");
@@ -871,13 +1024,13 @@ public class CubeManager : MonoBehaviour {
         return objs;
     }
 
-
+    
     bool IsPieceOnPlace(GameObject piece)
-    {
+        {
         if (Mathf.Round(piece.transform.eulerAngles.y) == 0 && Mathf.Round(piece.transform.eulerAngles.x) == 0 && Mathf.Round(piece.transform.eulerAngles.z) == 0)
             return true;
         return false;
-    }
+        }
 
 
     List<GameObject> GetActivrColors(GameObject piece
@@ -887,18 +1040,18 @@ public class CubeManager : MonoBehaviour {
         List<GameObject> planesCube = piece.GetComponent<CubePieceScript>().Planes;
         for (int i = 0; i < 6; i++)
         {
-            if (planesCube[i].activeInHierarchy)
+            if(planesCube[i].activeInHierarchy)
             {
                 planes.Add(planesCube[i]);
             }
         }
-
+    
         return planes;
     }
 
-    GameObject centralPiece(int x, int y, int z)
+    GameObject centralPiece(int x, int y , int z)
     {
-        return AllCubePieces.Find(cube => (Mathf.Round(cube.transform.position.x) == x) && (Mathf.Round(cube.transform.position.y) == y + 1) && (Mathf.Round(cube.transform.position.z) == z));
+        return AllCubePieces.Find(cube => (Mathf.Round(cube.transform.position.x) == x) && (Mathf.Round(cube.transform.position.y) == y+1) && (Mathf.Round(cube.transform.position.z) == z));
     }
 
 
@@ -907,8 +1060,13 @@ public class CubeManager : MonoBehaviour {
 
 
 
-    IEnumerator BuildWhiteCorner(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildWhiteCorner(List<List<GameObject>> cubeSides)
     {
+        if(IsSolve)
+        {
+            yield return BuildWhiteKrest(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n2. Сбор 1 ряда:"+inProcess);
         Color whiteColor = Color.white;
 
         List<GameObject> corners = new List<GameObject>();
@@ -919,18 +1077,19 @@ public class CubeManager : MonoBehaviour {
             corners.AddRange(cubeSides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 3));
 
         }
-
-
+      
+       
         List<GameObject> WhiteCorners = GetObjsByColor(corners, whiteColor);
-
-        foreach (GameObject corner in WhiteCorners)
+        
+        foreach(GameObject corner in WhiteCorners)
         {
-            int speed = 5;
+           
+           // int speed = 5;
             int x = Mathf.RoundToInt(corner.transform.position.x);
             int y = Mathf.RoundToInt(corner.transform.position.y);
             int z = Mathf.RoundToInt(corner.transform.position.z);
-            print(x + " " + y + " " + z);
-            print("IsPieceOnplace " + IsPieceOnPlace(corner));
+            print(x+" "+y+" "+z);
+            print("IsPieceOnplace "+IsPieceOnPlace(corner));
             if (y == 0 && !IsPieceOnPlace(corner))
             {
                 if (x == 0)
@@ -973,11 +1132,18 @@ public class CubeManager : MonoBehaviour {
                 yield return RotateDownToBuildWhiteCorner(corner, speed);
             }
         }
+        infoText.text = infoText.text.Replace(inProcess, ready);
         yield return null;
+        if (IsSolve)
+            IsSolve = false;
     }
+
+    
+
+   
     string GetColorByColor(Color color)
     {
-
+        
         if (color == Color.blue)
             return "blue";
         else if (color == Color.green)
@@ -995,7 +1161,7 @@ public class CubeManager : MonoBehaviour {
     {
         for (int i = 0; i < 4; i++)
         {
-
+            
             List<int> num = new List<int>();
             if (Mathf.Round(corner.transform.position.y) == 0)
             {
@@ -1017,12 +1183,12 @@ public class CubeManager : MonoBehaviour {
             print("Color =" + GetPlaneByColor(corner, colorPare, planes));
 
 
-            if (IsPieceBetweenTwoCenters(GetActivrColors(planes[0][center1]), GetActivrColors(planes[1][center2]), GetActivrColors(corner)))
+            if(IsPieceBetweenTwoCenters(GetActivrColors(planes[0][center1]), GetActivrColors(planes[1][center2]), GetActivrColors(corner)))
             {
-
+                
                 int sideNum = SideByColor(GetPlaneByColor(corner, colorPare, planes));
-
-                print("Sidenum =" + sideNum);
+               
+                print("Sidenum ="+sideNum);
                 bool isChange = false;
                 if (sideNum == -1)
                 {
@@ -1030,19 +1196,19 @@ public class CubeManager : MonoBehaviour {
                     isChange = true;
                 }
 
-                int vecz = (Mathf.RoundToInt(sides[sideNum][GetPlaneCenter(sides[sideNum])].transform.position.x) - Mathf.RoundToInt(corner.transform.position.x));
-                int vecy = 0;
-                int vecx = (Mathf.RoundToInt(sides[sideNum][GetPlaneCenter(sides[sideNum])].transform.position.z) - Mathf.RoundToInt(corner.transform.position.z));
-                print(vecx + " " + vecy + " " + vecz);
-                if (isChange)
+                    int vecz = (Mathf.RoundToInt(sides[sideNum][GetPlaneCenter(sides[sideNum])].transform.position.x) - Mathf.RoundToInt(corner.transform.position.x));
+                    int vecy = 0;
+                    int vecx = (Mathf.RoundToInt(sides[sideNum][GetPlaneCenter(sides[sideNum])].transform.position.z) - Mathf.RoundToInt(corner.transform.position.z));
+                    print(vecx + " " + vecy + " " + vecz);
+                if(isChange)
                     sideNum = -1;
-
-
-                if (sideNum == -1)
+                
+                
+                if(sideNum == -1)
                 {
                     if (num[0] == 2 && num[1] == 4)
                     {
-                        // speed = 1;
+                       // speed = 1;
                         yield return Rotate(sides[num[1]], new Vector3(vecz, vecy, vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -1052,11 +1218,11 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[num[1]], new Vector3(-vecz, -vecy, -vecx), speed);
                     }
-                    else if (num[0] == 3 && num[1] == 4)
+                    else if(num[0] == 3 && num[1] == 4)
                     {
                         yield return Rotate(sides[num[1]], new Vector3(-vecz, -vecy, -vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
-                        yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+                        yield return Rotate(DownPieces, new Vector3(0,1, 0), speed);
                         yield return Rotate(sides[num[1]], new Vector3(vecz, vecy, vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[num[1]], new Vector3(-vecz, -vecy, -vecx), speed);
@@ -1066,7 +1232,7 @@ public class CubeManager : MonoBehaviour {
                     else if (num[0] == 2 && num[1] == 5)
                     {
                         // speed = 1;
-
+                        
                         yield return Rotate(sides[num[1]], new Vector3(-vecz, -vecy, -vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -1088,7 +1254,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(sides[num[1]], new Vector3(-vecz, -vecy, -vecx), speed);
                     }
                 }
-                else if (sideNum == 2)
+                else if (sideNum==2)
                 {
                     if (num[1] == 5)
                     {
@@ -1097,14 +1263,14 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
                     }
-                    else if (num[1] == 4)
+                    else if(num[1] == 4)
                     {
                         yield return Rotate(sides[sideNum], new Vector3(vecx, vecy, vecz), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
                     }
                 }
-                else if (sideNum == 3)
+                else if(sideNum == 3)
                 {
                     if (num[1] == 4)
                     {
@@ -1115,7 +1281,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
                     }
-                    else if (num[1] == 5)
+                    else if(num[1] == 5)
                     {
                         yield return Rotate(sides[sideNum], new Vector3(vecx, vecy, vecz), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -1124,14 +1290,14 @@ public class CubeManager : MonoBehaviour {
                 }
                 else if (sideNum == 4)
                 {
-                    if (num[0] == 2)
-                    {
+                    if(num[0]==2)
+                      {
                         print("redblue");
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[sideNum], new Vector3(vecx, vecy, vecz), speed);
-                    }
-                    else if (num[0] == 3)
+                       }
+                    else if(num[0] == 3)
                     {
                         print("orangeblue");
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
@@ -1139,7 +1305,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(sides[sideNum], new Vector3(vecx, vecy, vecz), speed);
                     }
                 }
-                else if (sideNum == 5)
+                else if(sideNum == 5)
                 {
                     if (num[0] == 3)
                     {
@@ -1147,7 +1313,7 @@ public class CubeManager : MonoBehaviour {
                         yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
                         yield return Rotate(sides[sideNum], new Vector3(vecx, vecy, vecz), speed);
                     }
-                    else if (num[0] == 2)
+                    else if(num[0] == 2)
                     {
                         yield return Rotate(sides[sideNum], new Vector3(-vecx, -vecy, -vecz), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -1158,11 +1324,11 @@ public class CubeManager : MonoBehaviour {
             }
             else
             {
-                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+                yield return Rotate(DownPieces,new Vector3(0,1,0),speed);
             }
+           
 
-
-
+            
             print(SideByColor(GetPlaneByColor(corner, colorPare, planes)));
             yield return null;
         }
@@ -1172,11 +1338,11 @@ public class CubeManager : MonoBehaviour {
         List<string> activeplanes = new List<string>();
         for (int i = 0; i < pieceActive.Count; i++)
         {
-            //  print("i = "+i);
-            //  print("PieceActive ="+pieceActive[i]);
+          //  print("i = "+i);
+          //  print("PieceActive ="+pieceActive[i]);
             activeplanes.Add(pieceActive[i].name);
         }
-
+      
 
         if (activeplanes.Contains(FcenterActive[0].name) && activeplanes.Contains(ScenterActive[0].name))
             return true;
@@ -1207,7 +1373,7 @@ public class CubeManager : MonoBehaviour {
         string orientation_string = Mathf.Round(orientation.x).ToString() + Mathf.Round(orientation.y).ToString() + Mathf.Round(orientation.z).ToString();
         print("orientation =" + orientation_string);
         List<Vector3> expectedOrientations;
-
+      
         List<string> baseColorDown = new List<string>();
         List<string> baseColorRed = new List<string>();
         List<string> baseColorBlue = new List<string>();
@@ -1294,9 +1460,9 @@ public class CubeManager : MonoBehaviour {
 
                 baseColorRed.Add("9000");
                 baseColorRed.Add("-27000");
+             
 
-
-
+           
                 baseColorBlue.Add("0090");
                 baseColorBlue.Add("00-270");
 
@@ -1343,30 +1509,35 @@ public class CubeManager : MonoBehaviour {
         return null;
     }
 
-    int SideByColor(string color)
+   int SideByColor(string color)
     {
-        if (color == null)
+        if(color == null)
         {
             return -1;
         }
         //print(color);
-        switch (color)
+        switch(color)
         {
-            case "red": return 2;
-            case "orange": return 3;
+            case "red":return 2;
+            case "orange":return 3;
             case "blue": return 4;
-            case "green": return 5;
-
+            case "green":return 5;
+            
             case "white": return 0;
             case "yellow": return 1;
-
-
+            
+                
         }
         return -1;
     }
 
-    IEnumerator BuildColourRebra(List<List<GameObject>> cubeSides)
+    public IEnumerator BuildColourRebra(List<List<GameObject>> cubeSides)
     {
+        if (IsSolve)
+        {
+            yield return BuildWhiteCorner(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n3. Сбор 2 ряда:" + inProcess);
         Color whiteColor = Color.white;
 
         List<GameObject> Rebra = new List<GameObject>();
@@ -1378,40 +1549,38 @@ public class CubeManager : MonoBehaviour {
         }
 
         List<Color> colors = new List<Color>();
-        colors.Add(new Color(1, 1, 1, 1));
-        colors.Add(new Color(1, 1, 0, 1));
+        colors.Add(new Color(1,1,1,1));
+        colors.Add(new Color(1,1,0,1));
         List<GameObject> colorRebra = GetObjsByTwoColors(Rebra, colors);
-        int speed = 5;
+    //   int speed = 5;
 
-        foreach (GameObject cubik in colorRebra)
+        foreach(GameObject cubik in colorRebra)
         {
             print(cubik.transform.position);
         }
         foreach (GameObject cubik in colorRebra)
         {
-            if (Mathf.Round(cubik.transform.position.y) == -1 && !IsPieceOnPlace(cubik))
+            if(Mathf.Round(cubik.transform.position.y) == -1 && !IsPieceOnPlace(cubik))
             { List<int> occ = GetSide(sides[0], sides, cubik);
 
                 int vecz = (Mathf.RoundToInt(sides[occ[0]][GetPlaneCenter(sides[occ[0]])].transform.position.x) - Mathf.RoundToInt(cubik.transform.position.x));
                 int vecy = 0;
                 int vecx = (Mathf.RoundToInt(sides[occ[0]][GetPlaneCenter(sides[occ[0]])].transform.position.z) - Mathf.RoundToInt(cubik.transform.position.z));
 
-                speed = 5;
-                if (occ[0] == 3 && occ[1] == 4)
+              //  speed = 5;
+             if(occ[0] == 3 && occ[1] == 4)
                 {
-                    yield return Rotate(sides[3], -RotationVectors[3], speed);
+                    yield return Rotate(sides[3], -RotationVectors[3],speed);
                     yield return Rotate(sides[1], new Vector3(0, 1, 0), speed);
                     yield return Rotate(sides[3], RotationVectors[3], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[4], RotationVectors[4], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[4], -RotationVectors[4], speed);
-                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
-                    yield return RotateDownToBuildRebra(speed, cubik);
                 }
-                else if (occ[0] == 3 && occ[1] == 5)
+             else if(occ[0] == 3 && occ[1] == 5)
                 {
-
+                    
                     yield return Rotate(sides[5], -RotationVectors[5], speed);
                     yield return Rotate(sides[1], new Vector3(0, 1, 0), speed);
                     yield return Rotate(sides[5], RotationVectors[5], speed);
@@ -1419,10 +1588,8 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[3], RotationVectors[3], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[3], -RotationVectors[3], speed);
-                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
-                    yield return RotateDownToBuildRebra(speed, cubik);
                 }
-                else if (occ[0] == 2 && occ[1] == 5)
+             else if(occ[0] == 2 && occ[1] == 5)
                 {
                     yield return Rotate(sides[2], -RotationVectors[2], speed);
                     yield return Rotate(sides[1], new Vector3(0, 1, 0), speed);
@@ -1431,10 +1598,8 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[5], RotationVectors[5], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[5], -RotationVectors[5], speed);
-                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
-                    yield return RotateDownToBuildRebra(speed, cubik);
                 }
-                else if (occ[0] == 2 && occ[1] == 4)
+             else if(occ[0] == 2 && occ[1] == 4)
                 {
                     yield return Rotate(sides[4], -RotationVectors[4], speed);
                     yield return Rotate(sides[1], new Vector3(0, 1, 0), speed);
@@ -1443,37 +1608,39 @@ public class CubeManager : MonoBehaviour {
                     yield return Rotate(sides[2], RotationVectors[2], speed);
                     yield return Rotate(sides[1], new Vector3(0, -1, 0), speed);
                     yield return Rotate(sides[2], -RotationVectors[2], speed);
-                    yield return Rotate(sides[occ[0]], new Vector3(), speed);
-                    yield return RotateDownToBuildRebra(speed, cubik);
-                }
-
-
-
-
+                }   
+             yield return Rotate(sides[occ[0]], new Vector3(),speed);
+                    
+                
+                
             }
-            else if (Mathf.Round(cubik.transform.position.y) == -2)
+
+            if (Mathf.Round(cubik.transform.position.y) == -2)
             {
                 yield return RotateDownToBuildRebra(speed, cubik);
             }
         }
+        infoText.text = infoText.text.Replace(inProcess, ready);
         yield return null;
+        if (IsSolve)
+            IsSolve = false;
     }
 
     IEnumerator RotateDownToBuildRebra(int speed, GameObject cubik)
     {
-        for (int i = 0; i < 4; i++)
+        for(int i = 0; i<4; i++)
         {
             int x = Mathf.RoundToInt(cubik.transform.position.x);
             int y = Mathf.RoundToInt(cubik.transform.position.y);
             int z = Mathf.RoundToInt(cubik.transform.position.z);
             bool isGoodPiece = IsPieceUnderSameColor(GetActivrColors(cubik), GetActivrColors(centralPiece(x, y, z)));
-            print(isGoodPiece + " " + Mathf.Round(cubik.transform.eulerAngles.x) + " " + Mathf.Round(cubik.transform.eulerAngles.z) + " " + Mathf.Round(cubik.transform.eulerAngles.y));
+            print(isGoodPiece +" "+ Mathf.Round(cubik.transform.eulerAngles.x) +" "+ Mathf.Round(cubik.transform.eulerAngles.z)+" "+ Mathf.Round(cubik.transform.eulerAngles.y));
             List<int> numbers = new List<int>();
             numbers.Add(270);
             numbers.Add(-90);
             numbers.Add(90);
 
-
+            
             GameObject CenterUnderCubik = centralPiece(x, y, z);
             GameObject OtherCenterCubik;
             int occ;
@@ -1500,7 +1667,7 @@ public class CubeManager : MonoBehaviour {
 
             if (GetActivrColors(centralPiece(x, y, z))[0].GetComponent<Renderer>().material.color == CubeActiveColors[0].GetComponent<Renderer>().material.color)
             {
-                downColor = GetColorByColor(CubeActiveColors[1].GetComponent<Renderer>().material.color);
+                 downColor = GetColorByColor(CubeActiveColors[1].GetComponent<Renderer>().material.color);
             }
             else
             {
@@ -1516,15 +1683,15 @@ public class CubeManager : MonoBehaviour {
 
 
 
-            if (isGoodPiece && ((numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.x)) || numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.z))) && Mathf.Round(cubik.transform.eulerAngles.y) == 0) ||
+            if (isGoodPiece && ((numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.x)) || numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.z))) && Mathf.Round(cubik.transform.eulerAngles.y) == 0 ) ||
                 (false))
             {
-                speed = 5;
+             //   speed = 5;
                 if (SideCube[0] == 2)
                 {
                     if (occ == 5)
                     {
-
+                       
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(vecz, vecy, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1537,9 +1704,9 @@ public class CubeManager : MonoBehaviour {
                         print("UnderSameColor!!!");
                         break;
                     }
-                    else
+                   else 
                     {
-
+                  
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(-vecz, vecy, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1553,11 +1720,11 @@ public class CubeManager : MonoBehaviour {
                         break;
                     }
                 }
-                else if (SideCube[0] == 5)
+                else if(SideCube[0] == 5)
                 {
                     if (sides[occ] == sides[3])
                     {
-
+                        
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(0, vecy, vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1572,7 +1739,7 @@ public class CubeManager : MonoBehaviour {
                     }
                     else
                     {
-
+                     
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(0, vecy, -vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1590,7 +1757,7 @@ public class CubeManager : MonoBehaviour {
                 {
                     if (occ == 5)
                     {
-
+                       
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(-vecz, vecy, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1605,7 +1772,7 @@ public class CubeManager : MonoBehaviour {
                     }
                     else
                     {
-
+                     
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(vecz, vecy, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1623,7 +1790,7 @@ public class CubeManager : MonoBehaviour {
                 {
                     if (sides[occ] == sides[3])
                     {
-
+                       
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(0, vecy, -vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1638,7 +1805,7 @@ public class CubeManager : MonoBehaviour {
                     }
                     else
                     {
-
+                      
                         yield return Rotate(DownPieces, new Vector3(0, -1 * coef, 0), speed);
                         yield return Rotate(sides[occ], new Vector3(0, vecy, vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, 1 * coef, 0), speed);
@@ -1664,22 +1831,22 @@ public class CubeManager : MonoBehaviour {
     int GetOthercolorForRebro(string color, string downColor)
     {
         string sideToRotate = "";
-        switch (color)
+        switch(color)
         {
             case "orange":
-
-                if (downColor == "blue")
-                {
-                    sideToRotate = "left";
-
-                }
-                else
-                {
-                    sideToRotate = "right";
-
-                }
+                
+                    if (downColor == "blue")
+                    {
+                        sideToRotate = "left";
+                    
+                    }
+                    else
+                    {
+                        sideToRotate = "right";
+                    
+                    }
                 break;
-            case "blue":
+           case "blue":
                 if (downColor == "red")
                 {
                     sideToRotate = "left";
@@ -1716,10 +1883,10 @@ public class CubeManager : MonoBehaviour {
                 }
                 break;
         }
-        if (sideToRotate == "left")
+        if(sideToRotate == "left")
         {
             return 1;
-
+        
         }
         else
         {
@@ -1727,9 +1894,14 @@ public class CubeManager : MonoBehaviour {
         }
     }
 
-    IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
+    public IEnumerator ReturnAndPlaceOnTruePlaceYellowRebra(List<List<GameObject>> sides)
     {
-        Color whiteColor = Color.white;
+        if (IsSolve)
+        {
+            yield return BuildColourRebra(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n4. Сбор желтого креста:" + inProcess);
+        cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
 
         List<GameObject> Rebra = new List<GameObject>();
 
@@ -1738,10 +1910,13 @@ public class CubeManager : MonoBehaviour {
             Rebra.AddRange(sides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 2));
 
         }
-        int speed = 5;
+   //     int speed = 5;
         List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1, 1, 0, 1));
         yield return RotateDown(yellowRebra, speed);
         yield return null;
+        infoText.text = infoText.text.Replace(inProcess, ready);
+        if (IsSolve)
+            IsSolve = false;
     }
 
     List<GameObject> GetnumOfOnPlace(List<GameObject> rebra)
@@ -1762,7 +1937,8 @@ public class CubeManager : MonoBehaviour {
     }
 
     IEnumerator RotateDown(List<GameObject> rebra, int speed)
-    { List<GameObject> num = new List<GameObject>();
+    {
+        List<GameObject> num = new List<GameObject>();
         for (int i = 0; i < 4; i++)
         {
             num = GetnumOfOnPlace(rebra);
@@ -1998,7 +2174,7 @@ public class CubeManager : MonoBehaviour {
             yield return null;
     }
 
-    IEnumerator PutYellowRebraOnTheirPlaces(List<GameObject> side, List<GameObject> wrongpieces, int speed)
+     IEnumerator PutYellowRebraOnTheirPlaces(List<GameObject> side, List<GameObject> wrongpieces, int speed)
     {
         int x = Mathf.RoundToInt(wrongpieces[0].transform.position.x);
         int z = Mathf.RoundToInt(wrongpieces[0].transform.position.z);
@@ -2014,7 +2190,7 @@ public class CubeManager : MonoBehaviour {
         }
         else { situation = "notOpposite"; }
 
-        speed = 5;
+        //speed = 5;
         if (situation == "notOpposite")
         {
             if (side == sides[4])
@@ -2187,9 +2363,14 @@ public class CubeManager : MonoBehaviour {
         return forreturn;
     }
 
-    IEnumerator ReturnAndPlaceOnTruePlaceYellowCorners(List<List<GameObject>> cubeSides)
+    public IEnumerator ReturnAndPlaceOnTruePlaceYellowCorners(List<List<GameObject>> cubeSides)
 
     {
+        if (IsSolve)
+        {
+            yield return ReturnAndPlaceOnTruePlaceYellowRebra(sides);
+        }
+        infoText.text = infoText.text.Insert(infoText.text.Length, "\n5. Расстановка и поворот уголков:" + inProcess);
         Color whiteColor = new Color(1, 1, 0, 1);
 
         List<GameObject> corners = new List<GameObject>();
@@ -2207,7 +2388,7 @@ public class CubeManager : MonoBehaviour {
         whoStayWrong.Clear();
         foreach (GameObject cubik in WhiteCorners)
         {
-            
+
             List<int> num = new List<int>();
 
             num = GetSide(sides[1], sides, cubik);
@@ -2231,42 +2412,16 @@ public class CubeManager : MonoBehaviour {
 
 
         }
-        int speed = 5;
-    
-       
+        //
+
+        //int speed = 5;
+
+
         yield return PutYellowCornersOnTheirPlaces(whoStayWrong, speed);
         whoStayWrong.Clear();
         foreach (GameObject cubik in WhiteCorners)
-            {
-                
-                List<int> num = new List<int>();
-
-                num = GetSide(sides[1], sides, cubik);
-                //   if(IsPieceBetweenTwoCenters())
-                List<List<GameObject>> planes = new List<List<GameObject>>();
-                planes.Add(sides[num[0]]);
-                planes.Add(sides[num[1]]);
-
-                int center1 = GetPlaneCenter(planes[0]);
-                int center2 = GetPlaneCenter(planes[1]);
-                GameObject Fcenter = planes[0][center1],
-                            Scenter = planes[1][center2];
-                if (IsPieceBetweenTwoCenters(GetActivrColors(Fcenter), GetActivrColors(Scenter), GetActivrColors(cubik)))
-                {
-                    continue;
-                }
-                else
-                {
-                    whoStayWrong.Add(cubik);
-                }
-
-
-            }
-        yield return PutYellowCornersOnTheirPlaces(whoStayWrong, speed);
-whoStayWrong.Clear();
-        foreach (GameObject cubik in WhiteCorners)
         {
-            
+
             List<int> num = new List<int>();
 
             num = GetSide(sides[1], sides, cubik);
@@ -2294,7 +2449,35 @@ whoStayWrong.Clear();
         whoStayWrong.Clear();
         foreach (GameObject cubik in WhiteCorners)
         {
-            
+
+            List<int> num = new List<int>();
+
+            num = GetSide(sides[1], sides, cubik);
+            //   if(IsPieceBetweenTwoCenters())
+            List<List<GameObject>> planes = new List<List<GameObject>>();
+            planes.Add(sides[num[0]]);
+            planes.Add(sides[num[1]]);
+
+            int center1 = GetPlaneCenter(planes[0]);
+            int center2 = GetPlaneCenter(planes[1]);
+            GameObject Fcenter = planes[0][center1],
+                        Scenter = planes[1][center2];
+            if (IsPieceBetweenTwoCenters(GetActivrColors(Fcenter), GetActivrColors(Scenter), GetActivrColors(cubik)))
+            {
+                continue;
+            }
+            else
+            {
+                whoStayWrong.Add(cubik);
+            }
+
+
+        }
+        yield return PutYellowCornersOnTheirPlaces(whoStayWrong, speed);
+        whoStayWrong.Clear();
+        foreach (GameObject cubik in WhiteCorners)
+        {
+
             List<int> num = new List<int>();
 
             num = GetSide(sides[1], sides, cubik);
@@ -2322,7 +2505,7 @@ whoStayWrong.Clear();
 
         yield return PutYellowCornersOnTheirPlaces(whoStayWrong, speed);
 
-        
+
         whoStayWrong = wstwr(WhiteCorners);
         //print(wstwr(WhiteCorners).Count);
         print(whoStayWrong.Count);
@@ -2334,9 +2517,13 @@ whoStayWrong.Clear();
         whoStayWrong = wstwr(WhiteCorners);
         yield return RotateCorners(whoStayWrong, speed);
         yield return null;
+
+        infoText.text = infoText.text.Replace(inProcess, ready);
+        if (IsSolve)
+            IsSolve = false;
     }
 
-    IEnumerator PutYellowCornersOnTheirPlaces(List<GameObject> wsw/*whoStayWrong*/, int speed)
+    IEnumerator PutYellowCornersOnTheirPlaces(List<GameObject> wsw, int speed)//whoStayWorng
     {
         print("lululululuul");
         print(wsw.Count);
@@ -2371,10 +2558,10 @@ whoStayWrong.Clear();
             {
                 print(c.transform.position);
             }
-           
+
             if (thirdSide == sides[2])//green
             {
-                speed = 5;
+             //   speed = 5;
                 yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
                 yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
                 yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
@@ -2425,7 +2612,7 @@ whoStayWrong.Clear();
         }
         else if (wsw.Count == 4)
         {
-            speed = 5;
+        //    speed = 5;
             yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
             yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
             yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
@@ -2545,14 +2732,14 @@ whoStayWrong.Clear();
         return null;
     }
 
-    List<GameObject> wstwr (List<GameObject> corners)
+    List<GameObject> wstwr(List<GameObject> corners)
     {
         List<GameObject> whoStayWrong = new List<GameObject>();
         foreach (GameObject cubik in corners)
         {
-            
-            
-            
+
+
+
             if (IsPieceOnPlace(cubik))
             {
                 continue;
@@ -2570,9 +2757,9 @@ whoStayWrong.Clear();
 
     IEnumerator RotateCorners(List<GameObject> whoStWr, int speed)
     {
-        speed = 5;
+   //     speed = 5;
         if (whoStWr.Count == 0) yield break;
-         if(whoStWr.Count == 2)
+        if (whoStWr.Count == 2)
         {
             List<int> sidesToRotate = GetSide(sides[1], sides, whoStWr[0]);
             int x1 = 0;
@@ -2609,7 +2796,7 @@ whoStayWrong.Clear();
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
 
 
-                   
+
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
@@ -2654,7 +2841,7 @@ whoStayWrong.Clear();
                 }
                 numOfRotations = 0;
             }
-         
+
             else if (sidesToRotate[0] == 3 && sidesToRotate[1] == 4)
             {
                 x2 = 1;
@@ -2785,16 +2972,16 @@ whoStayWrong.Clear();
 
 
         }
-        else if(whoStWr.Count == 3)
+        else if (whoStWr.Count == 3)
         {
-            List<int> sidesToRotate = GetSide(sides[1],sides,whoStWr[0]);
+            List<int> sidesToRotate = GetSide(sides[1], sides, whoStWr[0]);
             int x1 = 0;
             int x2 = 0;
 
             int z1 = 0;
             int z2 = 0;
-            
-            foreach(int n in sidesToRotate)
+
+            foreach (int n in sidesToRotate)
             {
                 print(n);
             }
@@ -2825,19 +3012,19 @@ whoStayWrong.Clear();
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
-                    
-                    
-                        yield return RotateDownCornersToPutOnNeedCoords(whoStWr[2], whoStWr[0], speed);
-                        yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
-                        yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
-                        yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
-                        yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
-                        yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
-                        yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
-                        yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
-                        yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
-             
-                    
+
+
+                    yield return RotateDownCornersToPutOnNeedCoords(whoStWr[2], whoStWr[0], speed);
+                    yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
+                    yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
+                    yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
+                    yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
+                    yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
+                    yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
+                    yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
+                    yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
+
+
                 }
                 else
                 {
@@ -2863,7 +3050,7 @@ whoStayWrong.Clear();
                 for (int i = 0; i < numOfRotations; i++)
                 {
                     yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
-                    
+
                 }
                 numOfRotations = 0;
             }
@@ -2873,7 +3060,7 @@ whoStayWrong.Clear();
                 x1 = 0;
                 z2 = 0;
                 z1 = -1;
-                
+
                 yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
                 yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
                 yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
@@ -2893,7 +3080,7 @@ whoStayWrong.Clear();
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(-x2, 0, -z2), speed);
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(-x1, 0, -z1), speed);
-                    
+
                     yield return RotateDownCornersToPutOnNeedCoords(whoStWr[2], whoStWr[0], speed);
                     yield return Rotate(sides[sidesToRotate[1]], new Vector3(x2, 0, z2), speed);
                     yield return Rotate(sides[sidesToRotate[0]], new Vector3(x1, 0, z1), speed);
@@ -2932,28 +3119,28 @@ whoStayWrong.Clear();
                 numOfRotations = 0;
             }
         }
-        else if(whoStWr.Count  == 4)
+        else if (whoStWr.Count == 4)
         {
-            yield return Rotate(FrontPieces, new Vector3(1,0,0),speed);
+            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
             yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
             yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
             yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-        yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-        yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-        if (wstwr(whoStWr).Count == 3)
-        {
-            yield return Rotate(DownPieces, new Vector3(0,1,0),speed);
+            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+            if (wstwr(whoStWr).Count == 3)
+            {
+                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
 
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
 
                 yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
                 yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
@@ -2964,31 +3151,31 @@ whoStayWrong.Clear();
                 yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
                 yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
             }
-        else
-        {
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+            else
+            {
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
 
-            yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
 
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-            yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
-            yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
-            yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
-               
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+                yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, -1), speed);
+                yield return Rotate(FrontPieces, new Vector3(-1, 0, 0), speed);
+                yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+
             }
             yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
-            }
+        }
 
 
         yield return null;
@@ -3002,31 +3189,87 @@ whoStayWrong.Clear();
         int y = Mathf.RoundToInt(baseCorner.transform.position.y);
         int z = Mathf.RoundToInt(baseCorner.transform.position.z);
 
-        
 
-        print(x+" "+y+" "+z);
-       
-        for (int i =0; i<4; i++)
-        {   /*
-            if(corner.transform.position == coords)
-            {
-                break;
-            }*/
+
+        print(x + " " + y + " " + z);
+
+        for (int i = 0; i < 4; i++)
+        {
             int ox = Mathf.RoundToInt(corner.transform.position.x);
-        int oy = Mathf.RoundToInt(corner.transform.position.y);
-        int oz = Mathf.RoundToInt(corner.transform.position.z);
+            int oy = Mathf.RoundToInt(corner.transform.position.y);
+            int oz = Mathf.RoundToInt(corner.transform.position.z);
             print(ox + " " + oy + " " + oz);
-            if(x == ox && y==oy && z==oz)
+            if (x == ox && y == oy && z == oz)
             {
                 break;
             }
             else
             {
                 numOfRotations++;
-                yield return Rotate(DownPieces,new Vector3(0,1,0),speed);
+                yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
             }
         }
         yield return null;
     }
 
+    public IEnumerator design_center()
+    {
+        /* for (int i = 0; i < 4; i++)
+         {
+             yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+             yield return Rotate(FrontHorizontalPieces, new Vector3(0, 1, 0), speed);
+         }*/
+        yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+
+    }
+
+    public IEnumerator design_chess()
+    {
+        yield return Rotate(RightPieces, new Vector3(0,0,1),speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(UpPieces, new Vector3(0, 1, 0), speed);
+        yield return Rotate(UpPieces, new Vector3(0, 1, 0), speed);
+    }
+
+    public IEnumerator design_cubeincube()
+    {
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+       
+
+    }
+
+    public IEnumerator design_Unknown()
+    {
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(RightPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(FrontPieces, new Vector3(1, 0, 0), speed);
+  
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(BackPieces, new Vector3(1, 0, 0), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+        yield return Rotate(LeftPieces, new Vector3(0, 0, 1), speed);
+
+
+    }
 }

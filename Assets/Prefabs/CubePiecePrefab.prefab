@@ -59,6 +59,7 @@ GameObject:
   - component: {fileID: 23210625710574894}
   - component: {fileID: 65360921505249702}
   - component: {fileID: 114218581608037144}
+  - component: {fileID: 8123674490490319328}
   m_Layer: 0
   m_Name: CubePiecePrefab
   m_TagString: Untagged
@@ -171,7 +172,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1490466912304666}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.7, y: 0.223, z: 0.31}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4217968777197184}
@@ -643,3 +644,19 @@ MonoBehaviour:
   - {fileID: 1777207330218750}
   - {fileID: 1569219709387132}
   - {fileID: 1164963796105582}
+--- !u!1818360609 &8123674490490319328
+RotationConstraint:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1490466912304666}
+  m_Enabled: 1
+  m_Weight: 1
+  m_RotationAtRest: {x: 0, y: 0, z: 0}
+  m_RotationOffset: {x: 0, y: 0, z: 0}
+  m_AffectRotationX: 1
+  m_AffectRotationY: 1
+  m_AffectRotationZ: 1
+  m_IsContraintActive: 1
+  m_IsLocked: 1
+  m_Sources: []
