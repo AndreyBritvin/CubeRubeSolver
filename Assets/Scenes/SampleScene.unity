@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.4964127, b: 0.57481724, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -367,7 +367,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: whiteK
         m_Mode: 1
         m_Arguments:
@@ -490,7 +490,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: yellowC
         m_Mode: 1
         m_Arguments:
@@ -1068,8 +1068,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
-        m_MethodName: design2
+      - m_Target: {fileID: 1076564541}
+        m_MethodName: design1
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1157,7 +1157,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: whiteC
         m_Mode: 1
         m_Arguments:
@@ -1280,7 +1280,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: solveButton
         m_Mode: 1
         m_Arguments:
@@ -1495,7 +1495,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: shuffleSlider
         m_Mode: 1
         m_Arguments:
@@ -1806,6 +1806,7 @@ GameObject:
   m_Component:
   - component: {fileID: 374074603}
   - component: {fileID: 374074602}
+  - component: {fileID: 374074604}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -1824,17 +1825,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a8f08ce62fb924479495806ec4484a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CubePiecePref: {fileID: 1490466912304666, guid: 1b2ed0a0776c1204dab838a275f683c7,
-    type: 2}
-  IsSolve: 0
-  isUnderstand: 0
-  cam: {fileID: 1577287374}
-  inProcess: " \u0432 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u0435"
-  ready: " \u0433\u043E\u0442\u043E\u0432\u043E"
-  infoText: {fileID: 1143315619}
-  solveText: {fileID: 1752240931}
-  YesButton: {fileID: 2105740572}
-  speed: 5
 --- !u!4 &374074603
 Transform:
   m_ObjectHideFlags: 0
@@ -1848,6 +1838,28 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &374074604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 374074601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 015d5220696171c4cba9ba3affd57e2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CubePiecePref: {fileID: 1490466912304666, guid: 0ae1418493ba3394a87eb9290d50c28b,
+    type: 2}
+  IsSolve: 0
+  isUnderstand: 0
+  cam: {fileID: 1577287374}
+  inProcess: " \u0432 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u0435"
+  ready: " \u0433\u043E\u0442\u043E\u0432\u043E"
+  infoText: {fileID: 1143315619}
+  solveText: {fileID: 1752240931}
+  YesButton: {fileID: 2105740572}
+  speed: 5
 --- !u!1 &380772242
 GameObject:
   m_ObjectHideFlags: 0
@@ -2347,7 +2359,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: Mode
         m_Mode: 1
         m_Arguments:
@@ -2482,6 +2494,8 @@ GameObject:
   - component: {fileID: 534669903}
   - component: {fileID: 534669906}
   - component: {fileID: 534669907}
+  - component: {fileID: 534669909}
+  - component: {fileID: 534669908}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2560,9 +2574,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 336f2de9a9ccd9d42a1eb4676f641f03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CubeMan: {fileID: 374074602}
-  pieces: []
-  planes: []
 --- !u!114 &534669907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2574,11 +2585,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8b31d44b8831243bd3a60aab720db8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &534669908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 534669902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c61dee19974c24fb5f58f15ea3db82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   camOrbit: {fileID: 1577287374}
   far: {fileID: 1527659541}
   RedSlider: {fileID: 269002233}
   GreenSlider: {fileID: 483343770}
   BlueSlider: {fileID: 1921623698}
+--- !u!114 &534669909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 534669902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e6e6d36bda4f742b78e5eeba0ba638, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CubeMan: {fileID: 374074604}
+  pieces: []
+  planes: []
 --- !u!1 &545501899
 GameObject:
   m_ObjectHideFlags: 0
@@ -2763,7 +2799,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: design3
         m_Mode: 1
         m_Arguments:
@@ -3207,7 +3243,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: design4
         m_Mode: 1
         m_Arguments:
@@ -3364,7 +3400,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: buildButton
         m_Mode: 1
         m_Arguments:
@@ -3487,7 +3523,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: resetCube
         m_Mode: 1
         m_Arguments:
@@ -3622,6 +3658,7 @@ GameObject:
   - component: {fileID: 1076564535}
   - component: {fileID: 1076564539}
   - component: {fileID: 1076564540}
+  - component: {fileID: 1076564541}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -3723,15 +3760,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c56740e725b55546bba81a430025604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modePanel: {fileID: 204625660}
-  SettingsPanel: {fileID: 380772242}
-  sliderShuffle: {fileID: 271199598}
-  sliderSens: {fileID: 1615809952}
-  sliderSpeed: {fileID: 1143878147}
-  designPanel: {fileID: 1849454001}
-  solvePanel: {fileID: 1978677015}
-  colorPanel: {fileID: 1816985969}
-  cubeM: {fileID: 374074602}
 --- !u!114 &1076564540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3753,6 +3781,26 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+--- !u!114 &1076564541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1076564534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba181a028f2823047b7a94ea80692dd1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modePanel: {fileID: 204625660}
+  SettingsPanel: {fileID: 380772242}
+  sliderShuffle: {fileID: 271199598}
+  sliderSens: {fileID: 1615809952}
+  sliderSpeed: {fileID: 1143878147}
+  designPanel: {fileID: 1849454001}
+  solvePanel: {fileID: 1978677015}
+  colorPanel: {fileID: 1816985969}
+  cubeM: {fileID: 374074604}
 --- !u!1 &1077685488
 GameObject:
   m_ObjectHideFlags: 0
@@ -3863,7 +3911,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: designActive
         m_Mode: 1
         m_Arguments:
@@ -4143,7 +4191,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: speedSlider
         m_Mode: 1
         m_Arguments:
@@ -4589,7 +4637,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: ColorActive
         m_Mode: 1
         m_Arguments:
@@ -4925,7 +4973,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: yellowK
         m_Mode: 1
         m_Arguments:
@@ -5260,7 +5308,18 @@ MonoBehaviour:
   m_Value: 10
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1076564534}
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Slider+SliderEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!1 &1539052953
@@ -5656,7 +5715,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: sensSlider
         m_Mode: 1
         m_Arguments:
@@ -6606,7 +6665,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: Settings
         m_Mode: 1
         m_Arguments:
@@ -6957,7 +7016,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: ColourR
         m_Mode: 1
         m_Arguments:
@@ -7080,7 +7139,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
+      - m_Target: {fileID: 1076564541}
         m_MethodName: shuffleButton
         m_Mode: 1
         m_Arguments:
@@ -7202,8 +7261,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076564539}
-        m_MethodName: design1
+      - m_Target: {fileID: 1076564541}
+        m_MethodName: design2
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7325,7 +7384,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 374074602}
+      - m_Target: {fileID: 374074604}
         m_MethodName: Understand
         m_Mode: 1
         m_Arguments:
