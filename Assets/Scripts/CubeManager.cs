@@ -14,6 +14,7 @@ public class CubeManager : MonoBehaviour {
     GameObject CubeCenterPiece;
     int numOfRotations = 0;
     int indexCenter;
+    
     bool canRotate = true,
         canShuffle = true;
     public GameObject cam;
@@ -113,6 +114,7 @@ public class CubeManager : MonoBehaviour {
     List<GameObject>[,] centralPieces = new List<GameObject>[3, SizeSideCube]; // [0] = frontHorizontal; [1] = [UpVertical]; [2] = UpHorizontals
     public List<List<GameObject>> sides = new List<List<GameObject>>();
     List<List<GameObject>> centralSides = new List<List<GameObject>>();
+    
     void getCentralPieces()
     {
         /*
@@ -382,7 +384,32 @@ public class CubeManager : MonoBehaviour {
         centralSides.Add(UpVertical);
         centralSides.Add(FrontHorizontalPieces);
     }
+    public IEnumerator showAllPieces(List<GameObject> pieces)
+    {
+        if (IsSolve)
+        {
+            Coroutine lastRoutine = null;
+            Coroutine lastRoutine1 = null;
+            Coroutine lastRoutine2 = null;
 
+            Coroutine lastRoutine3 = null;
+
+            lastRoutine = StartCoroutine(morgat(pieces[0]));
+            lastRoutine1 = StartCoroutine(morgat(pieces[1]));
+            lastRoutine2 = StartCoroutine(morgat(pieces[2]));
+            lastRoutine3 = StartCoroutine(morgat(pieces[3]));
+
+            yield return WaitForClickButton();
+
+
+            StopCoroutine(lastRoutine);
+            StopCoroutine(lastRoutine1);
+            StopCoroutine(lastRoutine2);
+            StopCoroutine(lastRoutine3);
+            for (int i = 0; i < 3; i++)
+                pieces[i].GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+        }
+    }
     void CheckComplete()
     {
         int whoStTrue = 0;
@@ -595,7 +622,17 @@ public class CubeManager : MonoBehaviour {
         return sign;
     }
 
-
+    public IEnumerator WaitForClickButton()
+    {
+        YesButton.SetActive(true);
+        
+        while(!isUnderstand)
+        {
+            yield return new WaitForSeconds(1);
+        }
+        isUnderstand = false;
+        YesButton.SetActive(false);
+    }
     public IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
     {
         infoText.text = "1. Сбор белого креста:";
@@ -624,7 +661,9 @@ public class CubeManager : MonoBehaviour {
         List<GameObject> WhiteRebra = GetObjsByColor(Rebra, whiteColor);
 
         int wsw = 0;
-        solveText.text = "находим кубики с белыми ребрами";
+        if(IsSolve)
+            solveText.text = "находим кубики с белыми ребрами";
+        yield return showAllPieces(WhiteRebra);
         foreach(GameObject c in WhiteRebra)
         {
         
@@ -639,29 +678,7 @@ public class CubeManager : MonoBehaviour {
             }
             
         }
-        if(IsSolve)
-        {
-            Coroutine lastRoutine = null;
-            Coroutine lastRoutine1 = null;
-            Coroutine lastRoutine2 = null;
-
-            Coroutine lastRoutine3 = null;
-            
-            lastRoutine=StartCoroutine(morgat(WhiteRebra[0]));
-            lastRoutine1 = StartCoroutine(morgat(WhiteRebra[1]));
-            lastRoutine2 = StartCoroutine(morgat(WhiteRebra[2]));
-            lastRoutine3 = StartCoroutine(morgat(WhiteRebra[3]));
-
-            yield return new WaitForSeconds(1);
-            
-            
-                StopCoroutine(lastRoutine);
-            StopCoroutine(lastRoutine1);
-            StopCoroutine(lastRoutine2);
-            StopCoroutine(lastRoutine3);
-
-
-        }
+        
       
         bool canSolve = true;
       //  int speed = 5;
@@ -684,7 +701,10 @@ public class CubeManager : MonoBehaviour {
                 if (Mathf.Round(whiteRebro.transform.position.y) == 0 && !IsPieceOnPlace(whiteRebro))
                 {
                     if (IsSolve)
+                    {   
                         solveText.text = "опускаем кубик вниз";
+                        yield return WaitForClickButton();
+                    }
                     Debug.Log("In y == 0");
                  
                     if (Mathf.Round(whiteRebro.transform.position.z) == 1 && Mathf.Round(whiteRebro.transform.position.x) == 0)
@@ -721,12 +741,15 @@ public class CubeManager : MonoBehaviour {
                 }
                 else if (Mathf.Round(whiteRebro.transform.position.y) == -1)
                 {
-                    if(IsSolve)
+                    if (IsSolve)
+                    {
                         solveText.text = "опускаем кубик вниз";
+                        yield return WaitForClickButton();
+                    }
                     int x = Mathf.RoundToInt(whiteRebro.transform.position.x);
                     int y = Mathf.RoundToInt(whiteRebro.transform.position.y);
                     int z = Mathf.RoundToInt(whiteRebro.transform.position.z);
-
+                    
                     if(x == 0)
                     {
                         if(z == 0)
@@ -777,12 +800,11 @@ public class CubeManager : MonoBehaviour {
                 }
             }
         }
-        YesButton.SetActive(true);
-        while (!isUnderstand)
-            yield return new WaitForSeconds(1);
-        YesButton.SetActive(false);
-        if (isUnderstand)
+        if (IsSolve)
         {
+            YesButton.SetActive(true);
+            yield return WaitForClickButton();
+            YesButton.SetActive(false);
             isUnderstand = false;
             if(wsw==0)
             {
@@ -793,6 +815,7 @@ public class CubeManager : MonoBehaviour {
                 yield return BuildWhiteKrest(sides);
             }
         }
+       
         
         solveText.text = "";
         infoText.text = infoText.text.Replace(inProcess, ready);
@@ -811,7 +834,10 @@ public class CubeManager : MonoBehaviour {
        //     print("PlaneName=" + cubik.name  );
         }
         if (IsSolve)
+        {
             solveText.text = "ставим кубик под свой цвет";
+            yield return WaitForClickButton();
+        }
 
         for (int i = 0; i < 4; i++)
 
@@ -829,7 +855,10 @@ public class CubeManager : MonoBehaviour {
             if (isGoodPiece)
             {
                 if (IsSolve)
+                {
                     solveText.text = "смотрим на положение кубика";
+                    yield return WaitForClickButton();
+                }
                 print("In zero if");
                 //  print(piece.transform.eulerAngles);
                 // print("Rotation_x=" + piece.transform.eulerAngles.x + " Rotation_y=" + piece.transform.eulerAngles.y + " Rotation_z=" + piece.transform.eulerAngles.z);
@@ -840,7 +869,10 @@ public class CubeManager : MonoBehaviour {
                 if ((Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.x)) == 180) || (Mathf.Abs(Mathf.Round(piece.transform.eulerAngles.z)) == 180))
                 {
                     if (IsSolve)
+                    {
                         solveText.text = "белый смотрит вниз - вращаем 2 раза грань с кубиком";
+                        yield return WaitForClickButton();
+                    }
                     print("InfirstIf");
 
                     print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
@@ -856,7 +888,10 @@ public class CubeManager : MonoBehaviour {
                 else if (angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.x))) || angles.Contains(Mathf.Abs(Mathf.RoundToInt(piece.transform.eulerAngles.z))))
                 {
                     if (IsSolve)
+                    {
                         solveText.text = "опускаем центр и вставляем туда кубик";
+                        yield return WaitForClickButton();
+                    }
                     print("InSecondIf");
                     //           speed = 5;
                     int j = GetCentralSide(centralSides, piece);
@@ -1062,9 +1097,15 @@ public class CubeManager : MonoBehaviour {
 
     public IEnumerator BuildWhiteCorner(List<List<GameObject>> cubeSides)
     {
-        if(IsSolve)
+        if(IsSolve )
         {
+            IsSolve = false;
+           
             yield return BuildWhiteKrest(sides);
+            
+           
+                IsSolve = true;
+            
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n2. Сбор 1 ряда:"+inProcess);
         Color whiteColor = Color.white;
@@ -1080,8 +1121,11 @@ public class CubeManager : MonoBehaviour {
       
        
         List<GameObject> WhiteCorners = GetObjsByColor(corners, whiteColor);
-        
-        foreach(GameObject corner in WhiteCorners)
+
+        if (IsSolve)
+            solveText.text = "находим кубики с белыми уголками";
+        yield return showAllPieces(WhiteCorners);
+        foreach (GameObject corner in WhiteCorners)
         {
            
            // int speed = 5;
@@ -1090,8 +1134,21 @@ public class CubeManager : MonoBehaviour {
             int z = Mathf.RoundToInt(corner.transform.position.z);
             print(x+" "+y+" "+z);
             print("IsPieceOnplace "+IsPieceOnPlace(corner));
+            if(IsPieceOnPlace(corner))
+            {
+                continue;
+            }
+             
+            
+            Coroutine lr = StartCoroutine(morgat(corner));
             if (y == 0 && !IsPieceOnPlace(corner))
             {
+                
+                if (IsSolve)
+                {
+                    solveText.text = "опускаем кубик вниз";
+                    yield return WaitForClickButton();
+                }
                 if (x == 0)
                 {
                     if (z == 0)
@@ -1126,10 +1183,39 @@ public class CubeManager : MonoBehaviour {
                         yield return RotateDownToBuildWhiteCorner(corner, speed);
                     }
                 }
+                
             }
             else if (y == -2)
             {
+
                 yield return RotateDownToBuildWhiteCorner(corner, speed);
+            }
+            StopCoroutine(lr);
+                corner.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+                if (IsSolve)
+                {
+                    break;
+                }
+        }
+        if (IsSolve)
+        {
+            int wsw = 0;
+            foreach(GameObject c in WhiteCorners)
+            {
+                if (!IsPieceOnPlace(c))
+                    wsw++;
+            }
+            YesButton.SetActive(true);
+            yield return WaitForClickButton();
+            YesButton.SetActive(false);
+            isUnderstand = false;
+            if (wsw == 0)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return BuildWhiteCorner(sides);
             }
         }
         infoText.text = infoText.text.Replace(inProcess, ready);
@@ -1159,6 +1245,11 @@ public class CubeManager : MonoBehaviour {
     }
     IEnumerator RotateDownToBuildWhiteCorner(GameObject corner, int speed)
     {
+        if (IsSolve)
+        {
+            solveText.text = "ставим кубик под свой цвет";
+            yield return WaitForClickButton();
+        }
         for (int i = 0; i < 4; i++)
         {
             
@@ -1202,13 +1293,25 @@ public class CubeManager : MonoBehaviour {
                     print(vecx + " " + vecy + " " + vecz);
                 if(isChange)
                     sideNum = -1;
-                
+                if(sideNum !=-1)
+                {
+                    if (IsSolve)
+                    {
+                        solveText.text = "кубик не смотрит вниз";
+                        yield return WaitForClickButton();
+                    }
+                }
                 
                 if(sideNum == -1)
                 {
                     if (num[0] == 2 && num[1] == 4)
                     {
-                       // speed = 1;
+                        if (IsSolve)
+                        {
+                            solveText.text = "Кубик смотрит вниз";
+                            yield return WaitForClickButton();
+                        }
+                        // speed = 1;
                         yield return Rotate(sides[num[1]], new Vector3(vecz, vecy, vecx), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
                         yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -1534,34 +1637,55 @@ public class CubeManager : MonoBehaviour {
     public IEnumerator BuildColourRebra(List<List<GameObject>> cubeSides)
     {
         if (IsSolve)
-        {
+            
+        { IsSolve = false;
+            
             yield return BuildWhiteCorner(sides);
+            yield return BuildWhiteCorner(sides);
+                IsSolve = true;
+           
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n3. Сбор 2 ряда:" + inProcess);
         Color whiteColor = Color.white;
 
         List<GameObject> Rebra = new List<GameObject>();
-
+        
         for (int i = 0; i < cubeSides.Count; i++)
         {
             Rebra.AddRange(cubeSides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 2));
 
         }
-
+        
         List<Color> colors = new List<Color>();
         colors.Add(new Color(1,1,1,1));
         colors.Add(new Color(1,1,0,1));
         List<GameObject> colorRebra = GetObjsByTwoColors(Rebra, colors);
+        if (IsSolve)
+            solveText.text = "находим ребра";
+        yield return showAllPieces(colorRebra);
     //   int speed = 5;
-
+    /*
         foreach(GameObject cubik in colorRebra)
         {
             print(cubik.transform.position);
-        }
+        }*/
         foreach (GameObject cubik in colorRebra)
         {
+            if(IsPieceOnPlace(cubik))
+            {
+                continue;
+
+            }
+            Coroutine lr = StartCoroutine(morgat(cubik));
+
             if(Mathf.Round(cubik.transform.position.y) == -1 && !IsPieceOnPlace(cubik))
-            { List<int> occ = GetSide(sides[0], sides, cubik);
+            {
+                if (IsSolve)
+                {
+                    solveText.text = "опускаем кубик вниз";
+                    yield return WaitForClickButton();
+                }
+                List<int> occ = GetSide(sides[0], sides, cubik);
 
                 int vecz = (Mathf.RoundToInt(sides[occ[0]][GetPlaneCenter(sides[occ[0]])].transform.position.x) - Mathf.RoundToInt(cubik.transform.position.x));
                 int vecy = 0;
@@ -1619,6 +1743,33 @@ public class CubeManager : MonoBehaviour {
             {
                 yield return RotateDownToBuildRebra(speed, cubik);
             }
+            StopCoroutine(lr);
+            cubik.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+            if (IsSolve)
+            {
+                break;
+            }
+        }
+        if (IsSolve)
+        {
+            int wsw = 0;
+            foreach (GameObject c in colorRebra)
+            {
+                if (!IsPieceOnPlace(c))
+                    wsw++;
+            }
+            YesButton.SetActive(true);
+            yield return WaitForClickButton();
+            YesButton.SetActive(false);
+            isUnderstand = false;
+            if (wsw == 0)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return BuildWhiteCorner(sides);
+            }
         }
         infoText.text = infoText.text.Replace(inProcess, ready);
         yield return null;
@@ -1628,7 +1779,12 @@ public class CubeManager : MonoBehaviour {
 
     IEnumerator RotateDownToBuildRebra(int speed, GameObject cubik)
     {
-        for(int i = 0; i<4; i++)
+        if (IsSolve)
+        {
+            solveText.text = "ставим кубик лицевой стороной под свой цвет";
+            yield return WaitForClickButton();
+        }
+        for (int i = 0; i<4; i++)
         {
             int x = Mathf.RoundToInt(cubik.transform.position.x);
             int y = Mathf.RoundToInt(cubik.transform.position.y);
@@ -1683,10 +1839,15 @@ public class CubeManager : MonoBehaviour {
 
 
 
-            if (isGoodPiece && ((numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.x)) || numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.z))) && Mathf.Round(cubik.transform.eulerAngles.y) == 0 ) ||
-                (false))
+            if (isGoodPiece && ((numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.x)) || numbers.Contains(Mathf.RoundToInt(cubik.transform.eulerAngles.z))) && Mathf.Round(cubik.transform.eulerAngles.y) == 0 ) 
+                )
             {
-             //   speed = 5;
+                if (IsSolve)
+                {
+                    solveText.text = "Ставим кубик на место";
+                    yield return WaitForClickButton();
+                }
+                //   speed = 5;
                 if (SideCube[0] == 2)
                 {
                     if (occ == 5)
@@ -1898,7 +2059,11 @@ public class CubeManager : MonoBehaviour {
     {
         if (IsSolve)
         {
+            IsSolve = false;
+            yield return BuildWhiteKrest(sides);
+            yield return BuildWhiteCorner(sides);
             yield return BuildColourRebra(sides);
+            IsSolve = true;
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n4. Сбор желтого креста:" + inProcess);
         cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
@@ -1912,6 +2077,9 @@ public class CubeManager : MonoBehaviour {
         }
    //     int speed = 5;
         List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1, 1, 0, 1));
+        if (IsSolve)
+            solveText.text = "находим кубики с желтыми ребрами";
+        yield return showAllPieces(yellowRebra);
         yield return RotateDown(yellowRebra, speed);
         yield return null;
         infoText.text = infoText.text.Replace(inProcess, ready);
@@ -1938,6 +2106,11 @@ public class CubeManager : MonoBehaviour {
 
     IEnumerator RotateDown(List<GameObject> rebra, int speed)
     {
+        if (IsSolve)
+        {
+            solveText.text = "ставим 2 кубика под свои цвета";
+            yield return WaitForClickButton();
+        }
         List<GameObject> num = new List<GameObject>();
         for (int i = 0; i < 4; i++)
         {
@@ -1952,10 +2125,11 @@ public class CubeManager : MonoBehaviour {
                 yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
             }
         }
+        /*
         foreach (GameObject cubik in num)
         {
             print(cubik.transform.position);
-        }
+        }*/
         for (int i = 0; i < 1; i++)
         {
             if (IsPieceOnPlace(num[i]))
@@ -1998,10 +2172,20 @@ public class CubeManager : MonoBehaviour {
         print(whoStayWrong.Count);
         if (counter == 4)
         {
+            if (IsSolve)
+            {
+                solveText.text = "все кубики правильно повернуты";
+                yield return WaitForClickButton();
+            }
             yield break;
         }
         else if (counter == 2)
         {
+            if (IsSolve)
+            {
+                solveText.text = "два кубика неправильно повернуты";
+                yield return WaitForClickButton();
+            }
             int x = Mathf.RoundToInt(whoStayWrong[0].transform.position.x);
             int z = Mathf.RoundToInt(whoStayWrong[0].transform.position.z);
 
@@ -2135,6 +2319,11 @@ public class CubeManager : MonoBehaviour {
         }
         else if (counter == 0)
         {
+            if (IsSolve)
+            {
+                solveText.text = "все кубики неправильно повернуты";
+                yield return WaitForClickButton();
+            }
             yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
             yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
             yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
@@ -2368,7 +2557,17 @@ public class CubeManager : MonoBehaviour {
     {
         if (IsSolve)
         {
+            
+            IsSolve = false;
+            yield return BuildWhiteKrest(sides);
+            yield return BuildWhiteCorner(sides);
+            yield return BuildColourRebra(sides);
+           
             yield return ReturnAndPlaceOnTruePlaceYellowRebra(sides);
+
+            
+            
+                IsSolve = true;
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n5. Расстановка и поворот уголков:" + inProcess);
         Color whiteColor = new Color(1, 1, 0, 1);
@@ -2384,6 +2583,9 @@ public class CubeManager : MonoBehaviour {
 
 
         List<GameObject> WhiteCorners = GetObjsByColor(corners, whiteColor);
+        if (IsSolve)
+            solveText.text = "находим кубики с желтыми ребрами";
+        yield return showAllPieces(WhiteCorners);
         List<GameObject> whoStayWrong = new List<GameObject>();
         whoStayWrong.Clear();
         foreach (GameObject cubik in WhiteCorners)

@@ -190,6 +190,7 @@ public class Buttons : MonoBehaviour {
     {
         Resetmode();
         cubeM.IsSolve = true;
+        //print("I wonna BuildWhiteKrest!");
         cubeM.resetList();
         StartCoroutine(cubeM.BuildWhiteKrest(cubeM.sides));
        // cubeM.IsSolve = false;
