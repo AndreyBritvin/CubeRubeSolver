@@ -248,10 +248,16 @@ public class CubeManager : MonoBehaviour {
         {
              StartCoroutine(buildCube());
         }
+        else if (Input.GetKeyDown(KeyCode.H))
+        {
+            resetList();
+            StartCoroutine(PutCenterPicesOnTheirPlaces(sides));
+        }
+        
 
 
-      
-        if (Input.GetKeyDown(KeyCode.W))
+
+            if (Input.GetKeyDown(KeyCode.W))
             StartCoroutine(Rotate(UpPieces, new Vector3(0, 1, 0)));
 
         else if (Input.GetKeyDown(KeyCode.S))
@@ -633,8 +639,99 @@ public class CubeManager : MonoBehaviour {
         isUnderstand = false;
         YesButton.SetActive(false);
     }
+
+    public IEnumerator PutCenterPicesOnTheirPlaces(List<List<GameObject>> cubeSides)
+    {
+        
+
+        List<GameObject> centers = new List<GameObject>();
+
+
+
+
+
+
+        for (int i = 0; i < cubeSides.Count; i++)
+        {
+            centers.AddRange(cubeSides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 1));
+
+        }
+        GameObject whiteCube = new GameObject() ;
+        for (int i = 0; i < 6; i++)
+        {
+            whiteCube = centers.Find(gg=>gg.GetComponent<CubePieceScript>().Planes[i].GetComponent<Renderer>().material.color == Color.white &&
+                gg.GetComponent<CubePieceScript>().Planes[i].activeInHierarchy);
+            if (whiteCube != null)
+            {
+                break;
+            }
+        }
+        if(Mathf.Round(whiteCube.transform.position.y) == 0)
+        {
+
+        }
+            else if(Mathf.Round(whiteCube.transform.position.y) == -1 )
+        {
+            if(Mathf.Round(whiteCube.transform.position.x) == 0 && Mathf.Round(whiteCube.transform.position.z) == 1)
+            {
+                yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+            }
+            else if (Mathf.Round(whiteCube.transform.position.x) == -1 && Mathf.Round(whiteCube.transform.position.z) == 0)
+            {
+                yield return Rotate(UpHorizontal, new Vector3(1, 0, 0), speed);
+            }
+            else if (Mathf.Round(whiteCube.transform.position.z) == 2 && Mathf.Round(whiteCube.transform.position.z) == 2)
+            {
+                yield return Rotate(UpHorizontal, new Vector3(-1, 0, 0), speed);
+            }
+            else if (Mathf.Round(whiteCube.transform.position.z) == 1 && Mathf.Round(whiteCube.transform.position.x) == -2)
+            {
+                yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
+            }
+        }
+        else if(Mathf.Round(whiteCube.transform.position.y) == -2)
+        {
+            yield return Rotate(UpVertical,new Vector3(0,0,1),speed);
+            yield return Rotate(UpVertical, new Vector3(0, 0, 1), speed);
+        }
+
+        
+        centers.Clear();
+        for (int i = 0; i < cubeSides.Count; i++)
+        {
+            centers.AddRange(cubeSides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 1));
+
+        }
+
+        GameObject redCube = new GameObject();
+        for (int i = 0; i < 6; i++)
+        {
+            redCube = centers.Find(gg => gg.GetComponent<CubePieceScript>().Planes[i].GetComponent<Renderer>().material.color == Color.red &&
+                gg.GetComponent<CubePieceScript>().Planes[i].activeInHierarchy);
+            
+            if (redCube != null)
+            {
+                break;
+            }
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (Mathf.Round(redCube.transform.position.x) == -1 && Mathf.Round(redCube.transform.position.y) == -1 && Mathf.Round(redCube.transform.position.z) == 0)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return Rotate(FrontHorizontalPieces, new Vector3(0,1,0),speed);
+            }
+        }
+
+        yield return null;
+    }
     public IEnumerator BuildWhiteKrest(List<List<GameObject>> cubeSides)
     {
+        yield return PutCenterPicesOnTheirPlaces(cubeSides);
         infoText.text = "1. Сбор белого креста:";
         infoText.text = infoText.text.Insert(infoText.text.Length, inProcess);
         
