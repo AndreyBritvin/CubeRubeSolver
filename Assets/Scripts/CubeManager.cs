@@ -13,6 +13,7 @@ public class CubeManager : MonoBehaviour {
     List<Vector3> AllCubePieces_copy = new List<Vector3>();
     GameObject CubeCenterPiece;
     int numOfRotations = 0;
+    public GameObject infoTextGameObj;
     int indexCenter;
     
     bool canRotate = true,
@@ -23,6 +24,7 @@ public class CubeManager : MonoBehaviour {
     public Text infoText;
     public Text solveText;
     public GameObject YesButton;
+    public GameObject ExitButton;
     public int speed = 5;
 
     Vector3[] RotationVectors ={
@@ -284,6 +286,7 @@ public class CubeManager : MonoBehaviour {
     
    public IEnumerator buildCube()
    {
+        solveText.text = "";
        resetList();
        yield return BuildWhiteKrest(sides);
        resetList();
@@ -631,18 +634,27 @@ public class CubeManager : MonoBehaviour {
     public IEnumerator WaitForClickButton()
     {
         YesButton.SetActive(true);
-        
-        while(!isUnderstand)
+        ExitButton.SetActive(true);
+        while (!isUnderstand)
         {
+            
             yield return new WaitForSeconds(1);
         }
+        
         isUnderstand = false;
         YesButton.SetActive(false);
     }
 
     public IEnumerator PutCenterPicesOnTheirPlaces(List<List<GameObject>> cubeSides)
     {
-        
+        if(IsSolve)
+        {
+            infoTextGameObj.SetActive(false);
+        }
+        else
+        {
+            infoTextGameObj.SetActive(true);
+        }
 
         List<GameObject> centers = new List<GameObject>();
 
@@ -794,7 +806,10 @@ public class CubeManager : MonoBehaviour {
                 {
                     continue;
                 }
-                lr = StartCoroutine(morgat(whiteRebro));
+                if (IsSolve)
+                {
+                    lr = StartCoroutine(morgat(whiteRebro));
+                }
                 if (Mathf.Round(whiteRebro.transform.position.y) == 0 && !IsPieceOnPlace(whiteRebro))
                 {
                     if (IsSolve)
@@ -889,8 +904,11 @@ public class CubeManager : MonoBehaviour {
                     yield return RotateDownToBuildWhiteKrest(speed, whiteRebro);
 
                 }
-                StopCoroutine(lr);
-                whiteRebro.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+                if (IsSolve)
+                {
+                    StopCoroutine(lr);
+                    whiteRebro.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+                }
                 if(IsSolve)
                 {
                     break;
@@ -923,7 +941,15 @@ public class CubeManager : MonoBehaviour {
     {
         isUnderstand = true;
     }
-
+    public void ExitSolve()
+    {
+        IsSolve = false;
+        solveText.text = "";
+        StopAllCoroutines();
+        isUnderstand = false;
+        YesButton.SetActive(false);
+        ExitButton.SetActive(false);
+    }
     IEnumerator RotateDownToBuildWhiteKrest(int speed, GameObject piece)
     {
         foreach (GameObject cubik in GetActivrColors(piece))
@@ -1235,9 +1261,14 @@ public class CubeManager : MonoBehaviour {
             {
                 continue;
             }
-             
-            
-            Coroutine lr = StartCoroutine(morgat(corner));
+            Coroutine lr = null;
+            if (IsSolve)
+            {
+
+
+                lr = StartCoroutine(morgat(corner));
+            }
+
             if (y == 0 && !IsPieceOnPlace(corner))
             {
                 
@@ -1287,8 +1318,11 @@ public class CubeManager : MonoBehaviour {
 
                 yield return RotateDownToBuildWhiteCorner(corner, speed);
             }
-            StopCoroutine(lr);
+            if (IsSolve)
+            {
+                StopCoroutine(lr);
                 corner.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+            }
                 if (IsSolve)
                 {
                     break;
@@ -1773,7 +1807,11 @@ public class CubeManager : MonoBehaviour {
                 continue;
 
             }
-            Coroutine lr = StartCoroutine(morgat(cubik));
+            Coroutine lr = null;
+            if (IsSolve)
+            {
+                lr = StartCoroutine(morgat(cubik));
+            }
 
             if(Mathf.Round(cubik.transform.position.y) == -1 && !IsPieceOnPlace(cubik))
             {
@@ -1840,8 +1878,11 @@ public class CubeManager : MonoBehaviour {
             {
                 yield return RotateDownToBuildRebra(speed, cubik);
             }
-            StopCoroutine(lr);
-            cubik.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+            if (IsSolve)
+            {
+                StopCoroutine(lr);
+                cubik.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+            }
             if (IsSolve)
             {
                 break;
@@ -2820,6 +2861,9 @@ public class CubeManager : MonoBehaviour {
         infoText.text = infoText.text.Replace(inProcess, ready);
         if (IsSolve)
             IsSolve = false;
+        yield return new WaitForSeconds(3);
+        infoText.text = "";
+        infoTextGameObj.SetActive(false);
     }
 
     IEnumerator PutYellowCornersOnTheirPlaces(List<GameObject> wsw, int speed)//whoStayWorng
