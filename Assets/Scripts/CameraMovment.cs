@@ -45,8 +45,17 @@ public class CameraMovment : MonoBehaviour {
             if (!isDisabled)
             {
                 isDisabled = false;
-                localRotation.x += Input.GetAxis("Mouse X") * Buttons.xSens;
-                localRotation.y += Input.GetAxis("Mouse Y") * Buttons.ySens;
+                if (!CubeMan.isReverse)
+                {
+
+                    localRotation.x += Input.GetAxis("Mouse X") * Buttons.xSens;
+                    localRotation.y += Input.GetAxis("Mouse Y") * Buttons.ySens;
+                }
+                else
+                {
+                    localRotation.x += Input.GetAxis("Mouse X") * -Buttons.xSens;
+                    localRotation.y += Input.GetAxis("Mouse Y") * -Buttons.ySens;
+                }
                 //нет перевращения кубика(нельзя развернууть его на 360 градусов)
                 localRotation.y = Mathf.Clamp(localRotation.y, -90, 90); 
             }

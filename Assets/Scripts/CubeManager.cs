@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class CubeManager : MonoBehaviour {
     public GameObject CubePiecePref;
+    public bool isReverse = false;
     public bool IsSolve = false;
     public bool isUnderstand = false;
     Transform CubeTransf;
@@ -640,7 +641,7 @@ public class CubeManager : MonoBehaviour {
             
             yield return new WaitForSeconds(1);
         }
-        
+        ExitButton.SetActive(false);
         isUnderstand = false;
         YesButton.SetActive(false);
     }
@@ -949,6 +950,10 @@ public class CubeManager : MonoBehaviour {
         isUnderstand = false;
         YesButton.SetActive(false);
         ExitButton.SetActive(false);
+        foreach(GameObject cubik in AllCubePieces) 
+        {
+            cubik.GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+        }
     }
     IEnumerator RotateDownToBuildWhiteKrest(int speed, GameObject piece)
     {
@@ -1228,7 +1233,7 @@ public class CubeManager : MonoBehaviour {
             
            
                 IsSolve = true;
-            
+            infoTextGameObj.SetActive(false);
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n2. Сбор 1 ряда:"+inProcess);
         Color whiteColor = Color.white;
@@ -1774,7 +1779,7 @@ public class CubeManager : MonoBehaviour {
             yield return BuildWhiteCorner(sides);
             yield return BuildWhiteCorner(sides);
                 IsSolve = true;
-           
+            infoTextGameObj.SetActive(false);
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n3. Сбор 2 ряда:" + inProcess);
         Color whiteColor = Color.white;
@@ -2202,9 +2207,12 @@ public class CubeManager : MonoBehaviour {
             yield return BuildWhiteCorner(sides);
             yield return BuildColourRebra(sides);
             IsSolve = true;
+            infoTextGameObj.SetActive(false);
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n4. Сбор желтого креста:" + inProcess);
-        cam.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
+
+        isReverse = true;
+        Camera.main.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
 
         List<GameObject> Rebra = new List<GameObject>();
 
@@ -2213,7 +2221,7 @@ public class CubeManager : MonoBehaviour {
             Rebra.AddRange(sides[i].FindAll(x => x.GetComponent<CubePieceScript>().Planes.FindAll(y => y.activeInHierarchy).Count == 2));
 
         }
-   //     int speed = 5;
+        //     int speed = 5;
         List<GameObject> yellowRebra = GetObjsByColor(Rebra, new Color(1, 1, 0, 1));
         if (IsSolve)
             solveText.text = "находим кубики с желтыми ребрами";
@@ -2223,6 +2231,12 @@ public class CubeManager : MonoBehaviour {
         infoText.text = infoText.text.Replace(inProcess, ready);
         if (IsSolve)
             IsSolve = false;
+        if (IsSolve)
+
+        {
+            isReverse = false;
+            Camera.main.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 0);
+        }
     }
 
     List<GameObject> GetnumOfOnPlace(List<GameObject> rebra)
@@ -2262,6 +2276,36 @@ public class CubeManager : MonoBehaviour {
             {
                 yield return Rotate(DownPieces, new Vector3(0, 1, 0), speed);
             }
+        }
+        if (IsSolve)
+        {
+            solveText.text = "эти кубики под своими цветами";
+            List<GameObject> sss = GetnumOfOnPlace(rebra);
+            Coroutine lr1 = null;
+            Coroutine lr2 = null;
+            Coroutine lr3 = null;
+            Coroutine lr4 = null;
+            if (GetnumOfOnPlace(rebra).Count == 2)
+            {
+                lr1 = StartCoroutine(morgat(sss[0]));
+                lr2 = StartCoroutine(morgat(sss[1]));
+            }
+            else if (GetnumOfOnPlace(rebra).Count == 4)
+            {
+                lr1 = StartCoroutine(morgat(sss[0]));
+                lr2 = StartCoroutine(morgat(sss[1]));
+
+                lr3 = StartCoroutine(morgat(sss[2]));
+                lr4 = StartCoroutine(morgat(sss[3]));
+            }
+            yield return WaitForClickButton();
+            StopCoroutine(lr1);
+            StopCoroutine(lr2);
+            StopCoroutine(lr3);
+            StopCoroutine(lr4);
+            for (int i = 0; i < 3; i++)
+                sss[i].GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+
         }
         /*
         foreach (GameObject cubik in num)
@@ -2312,7 +2356,7 @@ public class CubeManager : MonoBehaviour {
         {
             if (IsSolve)
             {
-                solveText.text = "все кубики правильно повернуты";
+                solveText.text = "все кубики правильно повернуты, переходим к уголкам";
                 yield return WaitForClickButton();
             }
             yield break;
@@ -2322,7 +2366,16 @@ public class CubeManager : MonoBehaviour {
             if (IsSolve)
             {
                 solveText.text = "два кубика неправильно повернуты";
+                Coroutine lr1 = null;
+                Coroutine lr2 = null;
+                
+                lr1 = StartCoroutine(morgat(whoStayWrong[0]));
+                lr2 = StartCoroutine(morgat(whoStayWrong[1]));
                 yield return WaitForClickButton();
+                StopCoroutine(lr1);
+                StopCoroutine(lr2);
+                for (int i = 0; i < 3; i++)
+                    whoStayWrong[i].GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
             }
             int x = Mathf.RoundToInt(whoStayWrong[0].transform.position.x);
             int z = Mathf.RoundToInt(whoStayWrong[0].transform.position.z);
@@ -2334,9 +2387,20 @@ public class CubeManager : MonoBehaviour {
 
             if (Mathf.Max(x, x1) - Mathf.Min(x, x1) == 2 || Mathf.Max(z, z1) - Mathf.Min(z, z1) == 2)
             {
+                if(IsSolve)
+                {
+                    solveText.text = "они находятся напротив друг друга";
+                    yield return WaitForClickButton();
+                }
                 situation = "opposite";
             }
-            else { situation = "notOpposite"; }
+            else {
+                if (IsSolve)
+                {
+                    solveText.text = "они находятся рядом друг с другом";
+                    yield return WaitForClickButton();
+                }
+                situation = "notOpposite"; }
 
             print(situation);
             //print(centralSides.Count);
@@ -2460,7 +2524,22 @@ public class CubeManager : MonoBehaviour {
             if (IsSolve)
             {
                 solveText.text = "все кубики неправильно повернуты";
+                Coroutine lr1 = null;
+                Coroutine lr2 = null;
+                Coroutine lr3 = null;
+                Coroutine lr4 = null;
+                lr1 = StartCoroutine(morgat(whoStayWrong[0]));
+                lr2 = StartCoroutine(morgat(whoStayWrong[1]));
+                lr3 = StartCoroutine(morgat(whoStayWrong[3]));
+                lr4 = StartCoroutine(morgat(whoStayWrong[4]));
                 yield return WaitForClickButton();
+                StopCoroutine(lr1);
+                StopCoroutine(lr2);
+                StopCoroutine(lr3);
+                StopCoroutine(lr4);
+                for (int i = 0; i < 3; i++)
+                    whoStayWrong[i].GetComponent<Renderer>().material.color = CubeCenterPiece.GetComponent<Renderer>().material.color;
+
             }
             yield return Rotate(UpVertical, new Vector3(0, 0, -1), speed);
             yield return Rotate(DownPieces, new Vector3(0, -1, 0), speed);
@@ -2693,6 +2772,8 @@ public class CubeManager : MonoBehaviour {
     public IEnumerator ReturnAndPlaceOnTruePlaceYellowCorners(List<List<GameObject>> cubeSides)
 
     {
+        isReverse = true;
+        Camera.main.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 180);
         if (IsSolve)
         {
             
@@ -2706,6 +2787,7 @@ public class CubeManager : MonoBehaviour {
             
             
                 IsSolve = true;
+            infoTextGameObj.SetActive(false);
         }
         infoText.text = infoText.text.Insert(infoText.text.Length, "\n5. Расстановка и поворот уголков:" + inProcess);
         Color whiteColor = new Color(1, 1, 0, 1);
@@ -2861,9 +2943,12 @@ public class CubeManager : MonoBehaviour {
         infoText.text = infoText.text.Replace(inProcess, ready);
         if (IsSolve)
             IsSolve = false;
+        CheckComplete();
         yield return new WaitForSeconds(3);
         infoText.text = "";
         infoTextGameObj.SetActive(false);
+        isReverse = false;
+        Camera.main.transform.eulerAngles = new Vector3(cam.transform.eulerAngles.x, cam.transform.eulerAngles.y, 0);
     }
 
     IEnumerator PutYellowCornersOnTheirPlaces(List<GameObject> wsw, int speed)//whoStayWorng
