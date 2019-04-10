@@ -66,7 +66,6 @@
     <Compile Include="Assets\Scripts\ColorHelper.cs" />
     <Compile Include="Assets\Scripts\CubeManager.cs" />
     <Compile Include="Assets\Scripts\CubePieceScript.cs" />
-    <Compile Include="Assets\Scripts\SolveCube.cs" />
     <None Include="Assets\Новый текстовый документ.txt" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>W:/Unity3D/GitHub/CubeRubeSolver/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>

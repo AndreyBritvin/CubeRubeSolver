@@ -6,3 +6,10 @@ ProjectSettings/*
 *.mdb
 *.bin
 Temp/*
+.vs/CubeRubeSolver/v15/Server/sqlite3/storage.ide-wal
+.vs/CubeRubeSolver/v15/Server/sqlite3/storage.ide-shm
+.vs/CubeRubeSolver/v15/Server/sqlite3/storage.ide
+.vs/CubeRubeSolver/v15/Server/sqlite3/db.lock
+obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+obj/Debug/Assembly-CSharp.csproj.CoreCompileInputs.cache
+obj/Debug/Assembly-CSharp.csprojAssemblyReference.cache
